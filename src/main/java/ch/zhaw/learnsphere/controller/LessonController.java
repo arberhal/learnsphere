@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.zhaw.learnsphere.model.Lesson;
 import ch.zhaw.learnsphere.model.LessonCreateDTO;
+import ch.zhaw.learnsphere.repository.CourseRepository;
 import ch.zhaw.learnsphere.repository.LessonRepository;
 
 @RestController
@@ -20,9 +21,11 @@ import ch.zhaw.learnsphere.repository.LessonRepository;
 public class LessonController {
 
     private final LessonRepository lessonRepository;
+    private final CourseRepository courseRepository;
 
-    public LessonController(LessonRepository lessonRepository) {
+    public LessonController(LessonRepository lessonRepository, CourseRepository courseRepository) {
         this.lessonRepository = lessonRepository;
+        this.courseRepository = courseRepository;
     }
 
     @PostMapping
@@ -31,23 +34,29 @@ public class LessonController {
             @RequestBody LessonCreateDTO dto) {
 
         Lesson lesson = new Lesson(
-            courseId,
-            dto.getTitle(),
-            dto.getContent(),
-            dto.getVideoUrl(),
-            dto.getOrder()
+                courseId,
+                dto.getTitle(),
+                dto.getContent(),
+                dto.getVideoUrl(),
+                dto.getOrder()
         );
 
         return new ResponseEntity<>(
-            lessonRepository.save(lesson),
-            HttpStatus.CREATED
+                lessonRepository.save(lesson),
+                HttpStatus.CREATED
         );
     }
 
     @GetMapping
     public ResponseEntity<List<Lesson>> getLessons(@PathVariable String courseId) {
+        // Optionaler Course-Existenzcheck (empfohlen)
+        if (!courseRepository.existsById(courseId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.ok(
-            lessonRepository.findByCourseIdOrderByOrderAsc(courseId)
+                lessonRepository.findByCourseIdOrderByOrderAsc(courseId)
         );
     }
+
 }
