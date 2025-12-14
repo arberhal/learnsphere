@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,6 @@ import ch.zhaw.learnsphere.model.Course;
 import ch.zhaw.learnsphere.model.CourseCreateDTO;
 import ch.zhaw.learnsphere.model.CourseUpdateDTO;
 import ch.zhaw.learnsphere.repository.CourseRepository;
-
 
 @RestController
 @RequestMapping("/api/teacher")
@@ -67,6 +67,18 @@ public class CourseController {
                     return ResponseEntity.ok(courseRepository.save(course));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    //Eventuell für Später Cascade Delete implementieren
+    @DeleteMapping("/courses/{courseId}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable String courseId) {
+
+        if (!courseRepository.existsById(courseId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        courseRepository.deleteById(courseId);
+        return ResponseEntity.noContent().build();
     }
 
 }
