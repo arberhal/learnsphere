@@ -1,6 +1,7 @@
 package ch.zhaw.learnsphere.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,4 +53,16 @@ public class ProgressController {
 
         return ResponseEntity.ok(progressRepository.save(updated));
     }
+
+    @GetMapping("/{courseId}")
+    public ResponseEntity<Progress> getProgress(@PathVariable String courseId) {
+
+        String studentSub = "auth0|teststudent"; // temporär
+
+        return progressRepository
+                .findByCourseIdAndStudentSub(courseId, studentSub)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }
