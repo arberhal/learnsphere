@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,6 +58,29 @@ public class LessonController {
         return ResponseEntity.ok(
                 lessonRepository.findByCourseIdOrderByOrderAsc(courseId)
         );
+    }
+
+    @PutMapping("/{lessonId}")
+    public ResponseEntity<Lesson> updateLesson(
+            @PathVariable String courseId,
+            @PathVariable String lessonId,
+            @RequestBody LessonCreateDTO dto) {
+
+        // optionaler Course-Check (empfohlen)
+        if (!courseRepository.existsById(courseId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return lessonRepository.findById(lessonId)
+                .filter(lesson -> lesson.getCourseId().equals(courseId))
+                .map(lesson -> {
+                    lesson.setTitle(dto.getTitle());
+                    lesson.setContent(dto.getContent());
+                    lesson.setVideoUrl(dto.getVideoUrl());
+                    lesson.setOrder(dto.getOrder());
+                    return ResponseEntity.ok(lessonRepository.save(lesson));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }
