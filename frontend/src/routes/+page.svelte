@@ -1,24 +1,25 @@
 <script>
     export let data;
-
-    let title = '';
-    let description = '';
 </script>
 
-<h1>LearnSphere – Courses</h1>
+<h1>LearnSphere</h1>
 
-<ul>
-    {#each data.courses as course}
-        <li>
-            <strong>{course.title}</strong> – {course.description}
-        </li>
-    {/each}
-</ul>
+<p>Available Courses</p>
 
-<h2>New Course</h2>
+{#if data.courses.length === 0}
+    <p>No courses available.</p>
+{:else}
+    <ul>
+        {#each data.courses as course}
+            <li>
+                <h3>{course.title}</h3>
+                <p>{course.description}</p>
 
-<form method="POST">
-    <input name="title" placeholder="Title" bind:value={title} />
-    <input name="description" placeholder="Description" bind:value={description} />
-    <button formaction="?/createCourse">Create</button>
-</form>
+                <!-- Vorbereitung für Issue 4 -->
+                <a href={`/courses/${course.id}`}>
+                    View course
+                </a>
+            </li>
+        {/each}
+    </ul>
+{/if}
