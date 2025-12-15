@@ -1,0 +1,18 @@
+const API = import.meta.env.VITE_API_BASE_URL;
+
+export async function getCourses() {
+  const res = await fetch(`${API}/api/teacher/courses`);
+  if (!res.ok) throw new Error('Failed to load courses');
+  return res.json();
+}
+
+export async function createCourse(title, description) {
+  const res = await fetch(`${API}/api/teacher/courses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description })
+  });
+
+  if (!res.ok) throw new Error('Failed to create course');
+  return res.json();
+}
