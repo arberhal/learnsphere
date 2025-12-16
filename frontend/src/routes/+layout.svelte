@@ -14,6 +14,7 @@
 		<li><a href="/">Courses</a></li>
 		<li><a href="#">Login</a></li>
 		<li><a href="#">Register</a></li>
+		<a href="/courses/create">Create New Course</a>
 	</ul>
 </nav>
 
