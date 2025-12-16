@@ -30,39 +30,35 @@ public class ProgressController {
             @PathVariable String courseId,
             @PathVariable Integer completedLessons) {
 
-        String studentSub = "auth0|teststudent"; // temporär
+        String studentSub = "auth0|teststudent"; // TEMP
 
         int totalLessons = lessonRepository
                 .findByCourseIdOrderByOrderAsc(courseId)
                 .size();
 
+        int safeCompletedLessons = Math.min(completedLessons, totalLessons);
+
         double percent = totalLessons == 0
                 ? 0
-                : (completedLessons * 100.0) / totalLessons;
+                : (safeCompletedLessons * 100.0) / totalLessons;
 
         Progress progress = progressRepository
                 .findByCourseIdAndStudentSub(courseId, studentSub)
-                .orElse(new Progress(courseId, studentSub, 0, 0.0));
+                .orElse(new Progress(null, courseId, studentSub, 0, 0.0));
+        progress.setCompletedLessons(safeCompletedLessons);
+        progress.setPercent(Math.min(percent, 100.0));
 
-        Progress updated = new Progress(
-                courseId,
-                studentSub,
-                completedLessons,
-                percent
-        );
-
-        return ResponseEntity.ok(progressRepository.save(updated));
+        return ResponseEntity.ok(progressRepository.save(progress));
     }
 
     @GetMapping("/{courseId}")
     public ResponseEntity<Progress> getProgress(@PathVariable String courseId) {
 
-        String studentSub = "auth0|teststudent"; // temporär
+        String studentSub = "auth0|teststudent";
 
         return progressRepository
                 .findByCourseIdAndStudentSub(courseId, studentSub)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
 }
