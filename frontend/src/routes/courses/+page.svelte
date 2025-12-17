@@ -36,9 +36,6 @@
 							<a href="/courses/{course.id}" class="btn btn-sm btn-primary">
 								View Course
 							</a>
-							<a href="/courses/{course.id}/edit" class="btn btn-sm btn-outline-secondary">
-								Edit
-							</a>
 						</div>
 					</div>
 				</div>
