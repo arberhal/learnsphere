@@ -19,29 +19,37 @@ import ch.zhaw.learnsphere.model.Course;
 import ch.zhaw.learnsphere.model.CourseCreateDTO;
 import ch.zhaw.learnsphere.model.CourseUpdateDTO;
 import ch.zhaw.learnsphere.repository.CourseRepository;
+import ch.zhaw.learnsphere.service.UserService;
 
 @RestController
 @RequestMapping("/api/teacher")
 public class CourseController {
 
     private final CourseRepository courseRepository;
+    private final UserService userService;
 
-    public CourseController(CourseRepository courseRepository) {
+    public CourseController(CourseRepository courseRepository, UserService userService) {
         this.courseRepository = courseRepository;
+        this.userService = userService;
     }
 
     @PostMapping("/courses")
-    public ResponseEntity<Course> createCourse(
+    public ResponseEntity<?> createCourse(
             @RequestBody CourseCreateDTO dto,
-            @AuthenticationPrincipal Jwt jwt) {  
-        
-        // Extract the user's sub from JWT token
-        String teacherSub = jwt.getSubject();  
+            @AuthenticationPrincipal Jwt jwt) {
+
+        // ✅ Check if user is a teacher
+        if (!userService.isTeacher(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only teachers can create courses");
+        }
+
+        String teacherSub = jwt.getSubject();
         
         Course course = new Course(
                 dto.getTitle(),
                 dto.getDescription(),
-                teacherSub  
+                teacherSub
         );
         Course saved = courseRepository.save(course);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
@@ -49,9 +57,9 @@ public class CourseController {
 
     @GetMapping("/courses")
     public ResponseEntity<List<Course>> getCourses(
-            @AuthenticationPrincipal Jwt jwt) {  
+            @AuthenticationPrincipal Jwt jwt) {
         
-        String teacherSub = jwt.getSubject();  
+        String teacherSub = jwt.getSubject();
         
         return ResponseEntity.ok(
                 courseRepository.findByTeacherSub(teacherSub)
@@ -61,26 +69,32 @@ public class CourseController {
     @GetMapping("/courses/{courseId}")
     public ResponseEntity<Course> getCourseById(
             @PathVariable String courseId,
-            @AuthenticationPrincipal Jwt jwt) {  
+            @AuthenticationPrincipal Jwt jwt) {
         
-        String teacherSub = jwt.getSubject();  
+        String teacherSub = jwt.getSubject();
         
         return courseRepository.findById(courseId)
-                .filter(course -> course.getTeacherSub().equals(teacherSub))  
+                .filter(course -> course.getTeacherSub().equals(teacherSub))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/courses/{courseId}")
-    public ResponseEntity<Course> updateCourse(
+    public ResponseEntity<?> updateCourse(
             @PathVariable String courseId,
             @RequestBody CourseUpdateDTO dto,
-            @AuthenticationPrincipal Jwt jwt) {  
-        
-        String teacherSub = jwt.getSubject();  
+            @AuthenticationPrincipal Jwt jwt) {
+
+        // ✅ Check if user is a teacher
+        if (!userService.isTeacher(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only teachers can update courses");
+        }
+
+        String teacherSub = jwt.getSubject();
 
         return courseRepository.findById(courseId)
-                .filter(course -> course.getTeacherSub().equals(teacherSub))  
+                .filter(course -> course.getTeacherSub().equals(teacherSub))
                 .map(course -> {
                     course.setTitle(dto.getTitle());
                     course.setDescription(dto.getDescription());
@@ -90,14 +104,20 @@ public class CourseController {
     }
 
     @DeleteMapping("/courses/{courseId}")
-    public ResponseEntity<Void> deleteCourse(
+    public ResponseEntity<?> deleteCourse(
             @PathVariable String courseId,
-            @AuthenticationPrincipal Jwt jwt) {  
-        
-        String teacherSub = jwt.getSubject();  
+            @AuthenticationPrincipal Jwt jwt) {
+
+        // ✅ Check if user is a teacher
+        if (!userService.isTeacher(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only teachers can delete courses");
+        }
+
+        String teacherSub = jwt.getSubject();
 
         return courseRepository.findById(courseId)
-                .filter(course -> course.getTeacherSub().equals(teacherSub)) 
+                .filter(course -> course.getTeacherSub().equals(teacherSub))
                 .map(course -> {
                     courseRepository.deleteById(courseId);
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
