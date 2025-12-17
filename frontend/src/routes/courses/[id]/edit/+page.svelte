@@ -2,7 +2,7 @@
   import { goto, invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
 
-  let { data, form } = $props();
+ let { data, form } = $props();
 
   let isEditing = $state(false);
   let isDeleting = $state(false);

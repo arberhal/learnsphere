@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,28 +31,42 @@ public class CourseController {
     }
 
     @PostMapping("/courses")
-    public ResponseEntity<Course> createCourse(@RequestBody CourseCreateDTO dto) {
-        // temporär: teacherSub fix (JWT kommt später)
+    public ResponseEntity<Course> createCourse(
+            @RequestBody CourseCreateDTO dto,
+            @AuthenticationPrincipal Jwt jwt) {  
+        
+        // Extract the user's sub from JWT token
+        String teacherSub = jwt.getSubject();  
+        
         Course course = new Course(
                 dto.getTitle(),
                 dto.getDescription(),
-                "auth0|testteacher"
+                teacherSub  
         );
         Course saved = courseRepository.save(course);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @GetMapping("/courses")
-    public ResponseEntity<List<Course>> getCourses() {
-        String teacherSub = "auth0|testteacher"; // temporär
+    public ResponseEntity<List<Course>> getCourses(
+            @AuthenticationPrincipal Jwt jwt) {  
+        
+        String teacherSub = jwt.getSubject();  
+        
         return ResponseEntity.ok(
                 courseRepository.findByTeacherSub(teacherSub)
         );
     }
 
     @GetMapping("/courses/{courseId}")
-    public ResponseEntity<Course> getCourseById(@PathVariable String courseId) {
+    public ResponseEntity<Course> getCourseById(
+            @PathVariable String courseId,
+            @AuthenticationPrincipal Jwt jwt) {  
+        
+        String teacherSub = jwt.getSubject();  
+        
         return courseRepository.findById(courseId)
+                .filter(course -> course.getTeacherSub().equals(teacherSub))  
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -58,9 +74,13 @@ public class CourseController {
     @PutMapping("/courses/{courseId}")
     public ResponseEntity<Course> updateCourse(
             @PathVariable String courseId,
-            @RequestBody CourseUpdateDTO dto) {
+            @RequestBody CourseUpdateDTO dto,
+            @AuthenticationPrincipal Jwt jwt) {  
+        
+        String teacherSub = jwt.getSubject();  
 
         return courseRepository.findById(courseId)
+                .filter(course -> course.getTeacherSub().equals(teacherSub))  
                 .map(course -> {
                     course.setTitle(dto.getTitle());
                     course.setDescription(dto.getDescription());
@@ -69,16 +89,19 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //Eventuell für Später Cascade Delete implementieren
     @DeleteMapping("/courses/{courseId}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable String courseId) {
+    public ResponseEntity<Void> deleteCourse(
+            @PathVariable String courseId,
+            @AuthenticationPrincipal Jwt jwt) {  
+        
+        String teacherSub = jwt.getSubject();  
 
-        if (!courseRepository.existsById(courseId)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        courseRepository.deleteById(courseId);
-        return ResponseEntity.noContent().build();
+        return courseRepository.findById(courseId)
+                .filter(course -> course.getTeacherSub().equals(teacherSub)) 
+                .map(course -> {
+                    courseRepository.deleteById(courseId);
+                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+                })
+                .orElse(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
     }
-
 }
