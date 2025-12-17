@@ -1,6 +1,8 @@
 package ch.zhaw.learnsphere.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,9 +30,11 @@ public class ProgressController {
     @PostMapping("/{courseId}/{completedLessons}")
     public ResponseEntity<Progress> updateProgress(
             @PathVariable String courseId,
-            @PathVariable Integer completedLessons) {
+            @PathVariable Integer completedLessons,
+            @AuthenticationPrincipal Jwt jwt) {  // ✅ Get JWT
 
-        String studentSub = "auth0|teststudent"; // TEMP
+        // ✅ Extract real student's sub from JWT
+        String studentSub = jwt.getSubject();
 
         int totalLessons = lessonRepository
                 .findByCourseIdOrderByOrderAsc(courseId)
@@ -52,9 +56,12 @@ public class ProgressController {
     }
 
     @GetMapping("/{courseId}")
-    public ResponseEntity<Progress> getProgress(@PathVariable String courseId) {
+    public ResponseEntity<Progress> getProgress(
+            @PathVariable String courseId,
+            @AuthenticationPrincipal Jwt jwt) {  // ✅ Get JWT
 
-        String studentSub = "auth0|teststudent";
+        // ✅ Extract real student's sub from JWT
+        String studentSub = jwt.getSubject();
 
         return progressRepository
                 .findByCourseIdAndStudentSub(courseId, studentSub)
