@@ -1,17 +1,32 @@
 import axios from "axios";
-import { API_BASE_URL } from '$env/static/private';
 import { fail, redirect } from '@sveltejs/kit';
 
-export async function load({ params }) {
-    const courseId = params.courseId;
+export async function load({ params, locals }) {
+    const jwt_token = locals.jwt_token;
+    const courseId = params.id; // ✅ Changed from params.courseId to params.id
+
+    // Check authentication
+    if (!locals.isAuthenticated || !jwt_token) {
+        throw redirect(303, '/login');
+    }
 
     try {
         const courseResponse = await axios.get(
-            `${API_BASE_URL}/api/teacher/courses/${courseId}`
+            `http://localhost:8080/api/teacher/courses/${courseId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${jwt_token}` // ✅ Added JWT
+                }
+            }
         );
 
         const lessonsResponse = await axios.get(
-            `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`
+            `http://localhost:8080/api/teacher/courses/${courseId}/lessons`,
+            {
+                headers: {
+                    Authorization: `Bearer ${jwt_token}` // ✅ Added JWT
+                }
+            }
         );
 
         return {
@@ -20,14 +35,20 @@ export async function load({ params }) {
         };
     } catch (error) {
         console.error('Failed to load course:', error);
+        
+        if (error.response?.status === 404) {
+            throw redirect(303, '/courses'); // Course not found, go to courses list
+        }
+        
         throw redirect(303, '/');
     }
 }
 
 export const actions = {
     // Update course action
-    update: async ({ request, params }) => {
-        const courseId = params.courseId;
+    update: async ({ request, params, locals }) => {
+        const jwt_token = locals.jwt_token;
+        const courseId = params.id; // ✅ Changed from params.courseId to params.id
         const data = await request.formData();
         const title = data.get('title');
         const description = data.get('description');
@@ -49,14 +70,15 @@ export const actions = {
 
         try {
             await axios.put(
-                `${API_BASE_URL}/api/teacher/courses/${courseId}`,
+                `http://localhost:8080/api/teacher/courses/${courseId}`,
                 {
                     title: title.trim(),
                     description: description.trim()
                 },
                 {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${jwt_token}` // ✅ Added JWT
                     }
                 }
             );
@@ -75,16 +97,22 @@ export const actions = {
     },
 
     // Delete course action
-    delete: async ({ params }) => {
-        const courseId = params.courseId;
+    delete: async ({ params, locals }) => {
+        const jwt_token = locals.jwt_token;
+        const courseId = params.id; // ✅ Changed from params.courseId to params.id
 
         try {
             await axios.delete(
-                `${API_BASE_URL}/api/teacher/courses/${courseId}`
+                `http://localhost:8080/api/teacher/courses/${courseId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${jwt_token}` // ✅ Added JWT
+                    }
+                }
             );
 
-            // Redirect to home page after successful deletion
-            throw redirect(303, '/');
+            // Redirect to courses list after successful deletion
+            throw redirect(303, '/courses');
             
         } catch (error) {
             console.error('Failed to delete course:', error);

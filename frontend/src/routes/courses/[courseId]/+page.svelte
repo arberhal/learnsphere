@@ -50,7 +50,7 @@
 
 <div class="container">
   <div class="header">
-    <a href="/" class="back-link">← Back to Courses</a>
+    <a href="/courses" class="back-link">← Back to Courses</a>
   </div>
 
   {#if !isEditing}
