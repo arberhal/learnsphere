@@ -1,509 +1,499 @@
 <script>
-  import { goto, invalidateAll } from '$app/navigation';
-  import { enhance } from '$app/forms';
+	import { enhance } from '$app/forms';
+	import { goto, invalidateAll } from '$app/navigation';
 
- let { data, form } = $props();
+	let { data, form } = $props();
 
-  let isEditing = $state(false);
-  let isDeleting = $state(false);
-  let showDeleteConfirm = $state(false);
+	// State
+	let showDeleteCourseConfirm = $state(false);
+	let isDeleting = $state(false);
+	let editingLessonId = $state(null);
+	let showAddLesson = $state(false);
 
-  // Editable fields
-  let editTitle = $state(data.course.title);
-  let editDescription = $state(data.course.description);
+	// New lesson form
+	let newLesson = $state({
+		title: '',
+		content: '',
+		videoUrl: '',
+		order: data.lessons.length + 1
+	});
 
-  function startEdit() {
-    editTitle = data.course.title;
-    editDescription = data.course.description;
-    isEditing = true;
-  }
+	function handleCourseUpdateEnhance() {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				await invalidateAll();
+			}
+			await update();
+		};
+	}
 
-  function cancelEdit() {
-    isEditing = false;
-    editTitle = data.course.title;
-    editDescription = data.course.description;
-  }
+	function handleCourseDeleteEnhance() {
+		isDeleting = true;
 
-  function handleUpdateEnhance() {
-    return async ({ result, update }) => {
-      if (result.type === 'success') {
-        isEditing = false;
-        await invalidateAll(); // Reload data
-      }
-      await update();
-    };
-  }
+		return async ({ result }) => {
+			if (result.type === 'redirect') {
+				goto(result.location);
+			} else {
+				isDeleting = false;
+				showDeleteCourseConfirm = false;
+			}
+		};
+	}
 
-  function handleDeleteEnhance() {
-    isDeleting = true;
-    
-    return async ({ result }) => {
-      if (result.type === 'redirect') {
-        goto(result.location);
-      } else {
-        isDeleting = false;
-        showDeleteConfirm = false;
-      }
-    };
-  }
+	function handleLessonActionEnhance() {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				editingLessonId = null;
+				showAddLesson = false;
+				newLesson = {
+					title: '',
+					content: '',
+					videoUrl: '',
+					order: data.lessons.length + 1
+				};
+				await invalidateAll();
+			}
+			await update();
+		};
+	}
+
+	function startEditLesson(lessonId) {
+		editingLessonId = lessonId;
+	}
+
+	function cancelEditLesson() {
+		editingLessonId = null;
+	}
+
+	function startAddLesson() {
+		showAddLesson = true;
+		newLesson.order = data.lessons.length + 1;
+	}
+
+	function cancelAddLesson() {
+		showAddLesson = false;
+		newLesson = {
+			title: '',
+			content: '',
+			videoUrl: '',
+			order: data.lessons.length + 1
+		};
+	}
 </script>
 
 <div class="container">
-  <div class="header">
-    <a href="/courses" class="back-link">← Back to Courses</a>
-  </div>
+	<!-- Header -->
+	<nav aria-label="breadcrumb" class="mb-4">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item"><a href="/courses">Courses</a></li>
+			<li class="breadcrumb-item"><a href="/courses/{data.course.id}">{data.course.title}</a></li>
+			<li class="breadcrumb-item active" aria-current="page">Edit</li>
+		</ol>
+	</nav>
 
-  {#if !isEditing}
-    <!-- View Mode -->
-    <div class="course-header">
-      <div class="course-info">
-        <h1>{data.course.title}</h1>
-        <p class="description">{data.course.description}</p>
-      </div>
-      
-      <div class="action-buttons">
-        <button on:click={startEdit} class="btn-edit">
-          Edit Course
-        </button>
-        <button on:click={() => showDeleteConfirm = true} class="btn-delete">
-          Delete Course
-        </button>
-      </div>
-    </div>
-  {:else}
-    <!-- Edit Mode -->
-    <div class="edit-section">
-      <h2>Edit Course</h2>
-      
-      <form method="POST" action="?/update" use:enhance={handleUpdateEnhance}>
-        <div class="form-group">
-          <label for="title">Course Title *</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            bind:value={editTitle}
-            required
-            placeholder="Enter course title"
-          />
-          {#if form?.errors?.title}
-            <span class="error">{form.errors.title}</span>
-          {/if}
-        </div>
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h1>Edit Course</h1>
+		<button type="button" class="btn btn-danger" on:click={() => (showDeleteCourseConfirm = true)}>
+			Delete Course
+		</button>
+	</div>
 
-        <div class="form-group">
-          <label for="description">Description *</label>
-          <textarea
-            id="description"
-            name="description"
-            bind:value={editDescription}
-            required
-            rows="4"
-            placeholder="Enter course description"
-          ></textarea>
-          {#if form?.errors?.description}
-            <span class="error">{form.errors.description}</span>
-          {/if}
-        </div>
+	<!-- Success/Error Messages -->
+	{#if form?.success || form?.lessonSuccess}
+		<div class="alert alert-success alert-dismissible fade show">
+			{form?.message || 'Changes saved successfully!'}
+		</div>
+	{/if}
 
-        {#if form?.error}
-          <div class="error-message">
-            {form.error}
-          </div>
-        {/if}
+	{#if form?.error || form?.lessonError}
+		<div class="alert alert-danger alert-dismissible fade show">
+			{form?.error || form?.lessonError}
+		</div>
+	{/if}
 
-        {#if form?.success}
-          <div class="success-message">
-            Course updated successfully!
-          </div>
-        {/if}
+	<!-- Course Info Section -->
+	<div class="card mb-4">
+		<div class="card-header">
+			<h2 class="h5 mb-0">Course Information</h2>
+		</div>
+		<div class="card-body">
+			<form method="POST" action="?/updateCourse" use:enhance={handleCourseUpdateEnhance}>
+				<div class="mb-3">
+					<label for="title" class="form-label">Course Title *</label>
+					<input
+						type="text"
+						id="title"
+						name="title"
+						class="form-control"
+						class:is-invalid={form?.errors?.title}
+						value={data.course.title}
+						required
+					/>
+					{#if form?.errors?.title}
+						<div class="invalid-feedback">{form.errors.title}</div>
+					{/if}
+				</div>
 
-        <div class="button-group">
-          <button type="submit" class="btn-primary">
-            Save Changes
-          </button>
-          <button type="button" on:click={cancelEdit} class="btn-secondary">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  {/if}
+				<div class="mb-3">
+					<label for="description" class="form-label">Description *</label>
+					<textarea
+						id="description"
+						name="description"
+						class="form-control"
+						class:is-invalid={form?.errors?.description}
+						rows="4"
+						required>{data.course.description}</textarea
+					>
+					{#if form?.errors?.description}
+						<div class="invalid-feedback">{form.errors.description}</div>
+					{/if}
+				</div>
 
-  <!-- Delete Confirmation Modal -->
-  {#if showDeleteConfirm}
-    <div class="modal-overlay" on:click={() => showDeleteConfirm = false}>
-      <div class="modal" on:click={(e) => e.stopPropagation()}>
-        <h3>Delete Course</h3>
-        <p>Are you sure you want to delete "{data.course.title}"?</p>
-        <p class="warning">This action cannot be undone. All lessons will remain but won't be accessible through this course.</p>
-        
-        {#if form?.deleteError}
-          <div class="error-message">
-            {form.deleteError}
-          </div>
-        {/if}
+				<button type="submit" class="btn btn-primary"> Save Course Info </button>
+			</form>
+		</div>
+	</div>
 
-        <form method="POST" action="?/delete" use:enhance={handleDeleteEnhance}>
-          <div class="modal-buttons">
-            <button 
-              type="submit" 
-              class="btn-delete" 
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Yes, Delete'}
-            </button>
-            <button 
-              type="button" 
-              on:click={() => showDeleteConfirm = false} 
-              class="btn-secondary"
-              disabled={isDeleting}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  {/if}
+	<!-- Lessons Section -->
+	<div class="card">
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<h2 class="h5 mb-0">Lessons</h2>
+			{#if !showAddLesson}
+				<button type="button" class="btn btn-sm btn-primary" on:click={startAddLesson}>
+					+ Add Lesson
+				</button>
+			{/if}
+		</div>
+		<div class="card-body">
+			<!-- Add New Lesson Form -->
+			{#if showAddLesson}
+				<div class="lesson-form-card mb-4">
+					<h3 class="h6 mb-3">New Lesson</h3>
+					<form method="POST" action="?/createLesson" use:enhance={handleLessonActionEnhance}>
+						<div class="row">
+							<div class="col-md-8 mb-3">
+								<label for="newLessonTitle" class="form-label">Title *</label>
+								<input
+									type="text"
+									id="newLessonTitle"
+									name="lessonTitle"
+									class="form-control form-control-sm"
+									class:is-invalid={form?.lessonErrors?.lessonTitle}
+									bind:value={newLesson.title}
+									required
+								/>
+								{#if form?.lessonErrors?.lessonTitle}
+									<div class="invalid-feedback">{form.lessonErrors.lessonTitle}</div>
+								{/if}
+							</div>
 
-  <!-- Lessons Section -->
-  <section class="lessons-section">
-    <h2>Lessons</h2>
+							<div class="col-md-4 mb-3">
+								<label for="newLessonOrder" class="form-label">Order *</label>
+								<input
+									type="number"
+									id="newLessonOrder"
+									name="lessonOrder"
+									class="form-control form-control-sm"
+									bind:value={newLesson.order}
+									required
+									min="1"
+								/>
+							</div>
+						</div>
 
-    {#if data.lessons.length === 0}
-      <p class="empty-state">No lessons available yet.</p>
-    {:else}
-      <ul class="lessons-list">
-        {#each data.lessons as lesson}
-          <li class="lesson-item">
-            <div class="lesson-info">
-              <span class="lesson-order">{lesson.order}.</span>
-              <strong>{lesson.title}</strong>
-            </div>
-            <a href={`/courses/${data.course.id}/lessons/${lesson.id}`} class="lesson-link">
-              Open lesson →
-            </a>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </section>
+						<div class="mb-3">
+							<label for="newLessonVideoUrl" class="form-label">Video URL (Optional)</label>
+							<input
+								type="url"
+								id="newLessonVideoUrl"
+								name="lessonVideoUrl"
+								class="form-control form-control-sm"
+								bind:value={newLesson.videoUrl}
+								placeholder="https://youtube.com/embed/..."
+							/>
+						</div>
+
+						<div class="mb-3">
+							<label for="newLessonContent" class="form-label">Content *</label>
+							<textarea
+								id="newLessonContent"
+								name="lessonContent"
+								class="form-control form-control-sm"
+								class:is-invalid={form?.lessonErrors?.lessonContent}
+								bind:value={newLesson.content}
+								rows="6"
+								required
+							></textarea>
+							{#if form?.lessonErrors?.lessonContent}
+								<div class="invalid-feedback">{form.lessonErrors.lessonContent}</div>
+							{/if}
+						</div>
+
+						<div class="d-flex gap-2">
+							<button type="submit" class="btn btn-sm btn-success"> Add Lesson </button>
+							<button type="button" class="btn btn-sm btn-secondary" on:click={cancelAddLesson}>
+								Cancel
+							</button>
+						</div>
+					</form>
+				</div>
+			{/if}
+
+			<!-- Existing Lessons List -->
+			{#if data.lessons.length === 0}
+				<p class="text-muted text-center py-4">No lessons yet. Add your first lesson above!</p>
+			{:else}
+				<div class="lessons-list">
+					{#each data.lessons as lesson (lesson.id)}
+						<div class="lesson-item">
+							{#if editingLessonId === lesson.id}
+								<!-- Edit Mode -->
+								<form method="POST" action="?/updateLesson" use:enhance={handleLessonActionEnhance}>
+									<input type="hidden" name="lessonId" value={lesson.id} />
+
+									<div class="row">
+										<div class="col-md-8 mb-2">
+											<input
+												type="text"
+												name="lessonTitle"
+												class="form-control form-control-sm"
+												value={lesson.title}
+												required
+											/>
+										</div>
+
+										<div class="col-md-4 mb-2">
+											<input
+												type="number"
+												name="lessonOrder"
+												class="form-control form-control-sm"
+												value={lesson.order}
+												required
+												min="1"
+											/>
+										</div>
+									</div>
+
+									<div class="mb-2">
+										<input
+											type="url"
+											name="lessonVideoUrl"
+											class="form-control form-control-sm"
+											value={lesson.videoUrl || ''}
+											placeholder="Video URL (optional)"
+										/>
+									</div>
+
+									<div class="mb-2">
+										<textarea
+											name="lessonContent"
+											class="form-control form-control-sm"
+											rows="4"
+											required>{lesson.content}</textarea
+										>
+									</div>
+
+									<div class="d-flex gap-2">
+										<button type="submit" class="btn btn-sm btn-success"> Save </button>
+										<button
+											type="button"
+											class="btn btn-sm btn-secondary"
+											on:click={cancelEditLesson}
+										>
+											Cancel
+										</button>
+									</div>
+								</form>
+							{:else}
+								<!-- View Mode -->
+								<div class="d-flex justify-content-between align-items-start">
+									<div class="flex-grow-1">
+										<div class="d-flex align-items-center gap-2 mb-2">
+											<span class="badge bg-primary">Lesson {lesson.order}</span>
+											<h3 class="h6 mb-0">{lesson.title}</h3>
+										</div>
+										{#if lesson.videoUrl}
+											<p class="small text-muted mb-1">📹 Video included</p>
+										{/if}
+										<p class="small text-muted mb-0">
+											{lesson.content.substring(0, 100)}{lesson.content.length > 100 ? '...' : ''}
+										</p>
+									</div>
+
+									<div class="d-flex gap-2">
+										<a
+											href="/courses/{data.course.id}/lessons/{lesson.id}"
+											class="btn btn-sm btn-outline-primary"
+										>
+											View
+										</a>
+										<button
+											type="button"
+											class="btn btn-sm btn-outline-secondary"
+											on:click={() => startEditLesson(lesson.id)}
+										>
+											Edit
+										</button>
+										<form
+											method="POST"
+											action="?/deleteLesson"
+											use:enhance={handleLessonActionEnhance}
+										>
+											<input type="hidden" name="lessonId" value={lesson.id} />
+											<button
+												type="submit"
+												class="btn btn-sm btn-outline-danger"
+												on:click={(e) => {
+													if (!confirm('Delete this lesson?')) {
+														e.preventDefault();
+													}
+												}}
+											>
+												Delete
+											</button>
+										</form>
+									</div>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Delete Course Confirmation Modal -->
+	{#if showDeleteCourseConfirm}
+		<div class="modal-overlay" on:click={() => (showDeleteCourseConfirm = false)}>
+			<div class="modal-dialog" on:click={(e) => e.stopPropagation()}>
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Delete Course</h5>
+					</div>
+					<div class="modal-body">
+						<p>Are you sure you want to delete "<strong>{data.course.title}</strong>"?</p>
+						<p class="text-danger">
+							This action cannot be undone. All lessons will also be deleted.
+						</p>
+
+						{#if form?.deleteError}
+							<div class="alert alert-danger">
+								{form.deleteError}
+							</div>
+						{/if}
+					</div>
+					<div class="modal-footer">
+						<form method="POST" action="?/deleteCourse" use:enhance={handleCourseDeleteEnhance}>
+							<button type="submit" class="btn btn-danger" disabled={isDeleting}>
+								{isDeleting ? 'Deleting...' : 'Yes, Delete Course'}
+							</button>
+							<button
+								type="button"
+								class="btn btn-secondary"
+								on:click={() => (showDeleteCourseConfirm = false)}
+								disabled={isDeleting}
+							>
+								Cancel
+							</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
+	.container {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
 
-  .header {
-    margin-bottom: 2rem;
-  }
+	.breadcrumb {
+		background: none;
+		padding: 0;
+	}
 
-  .back-link {
-    color: #2196F3;
-    text-decoration: none;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+	.breadcrumb-item a {
+		color: #2196f3;
+		text-decoration: none;
+	}
 
-  .back-link:hover {
-    text-decoration: underline;
-  }
+	.breadcrumb-item a:hover {
+		text-decoration: underline;
+	}
 
-  .course-header {
-    background: #f9f9f9;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
-  }
+	.lesson-form-card {
+		background: #f8f9fa;
+		padding: 1.5rem;
+		border-radius: 8px;
+		border: 2px dashed #dee2e6;
+	}
 
-  .course-info {
-    flex: 1;
-  }
+	.lessons-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
 
-  h1 {
-    margin: 0 0 1rem 0;
-    color: #333;
-    font-size: 2rem;
-  }
+	.lesson-item {
+		padding: 1rem;
+		border: 1px solid #dee2e6;
+		border-radius: 8px;
+		background: white;
+	}
 
-  .description {
-    margin: 0;
-    color: #666;
-    font-size: 1.1rem;
-    line-height: 1.6;
-  }
+	.lesson-item:hover {
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
 
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    min-width: 150px;
-  }
+	/* Modal Styles */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
 
-  .btn-edit,
-  .btn-delete,
-  .btn-primary,
-  .btn-secondary {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
+	.modal-dialog {
+		max-width: 500px;
+		width: 90%;
+	}
 
-  .btn-edit {
-    background-color: #2196F3;
-    color: white;
-  }
+	.modal-content {
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
 
-  .btn-edit:hover {
-    background-color: #1976D2;
-  }
+	.modal-header {
+		padding: 1.5rem;
+		border-bottom: 1px solid #dee2e6;
+	}
 
-  .btn-delete {
-    background-color: #f44336;
-    color: white;
-  }
+	.modal-title {
+		margin: 0;
+		font-size: 1.25rem;
+	}
 
-  .btn-delete:hover {
-    background-color: #d32f2f;
-  }
+	.modal-body {
+		padding: 1.5rem;
+	}
 
-  .btn-delete:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
+	.modal-footer {
+		padding: 1.5rem;
+		border-top: 1px solid #dee2e6;
+	}
 
-  .btn-primary {
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background-color: #45a049;
-  }
-
-  .btn-secondary {
-    background-color: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-  }
-
-  .btn-secondary:hover {
-    background-color: #eeeeee;
-  }
-
-  .btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .edit-section {
-    background: #f9f9f9;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-  }
-
-  .edit-section h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #333;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #555;
-  }
-
-  input,
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-
-  input:focus,
-  textarea:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-  }
-
-  .error {
-    display: block;
-    color: #d32f2f;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-
-  .error-message {
-    padding: 0.75rem;
-    background-color: #ffebee;
-    color: #c62828;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-
-  .success-message {
-    padding: 0.75rem;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-
-  .button-group {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-
-  /* Modal Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .modal {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .modal h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #333;
-  }
-
-  .modal p {
-    margin-bottom: 1rem;
-    color: #666;
-  }
-
-  .warning {
-    color: #f57c00;
-    font-weight: 500;
-  }
-
-  .modal-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-
-  .modal-buttons button {
-    flex: 1;
-  }
-
-  /* Lessons Section */
-  .lessons-section {
-    margin-top: 2rem;
-  }
-
-  .lessons-section h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: #999;
-    padding: 2rem;
-    font-style: italic;
-  }
-
-  .lessons-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .lesson-item {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 0.75rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s;
-  }
-
-  .lesson-item:hover {
-    border-color: #2196F3;
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
-  }
-
-  .lesson-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .lesson-order {
-    color: #2196F3;
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-
-  .lesson-link {
-    color: #2196F3;
-    text-decoration: none;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .lesson-link:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 768px) {
-    .course-header {
-      flex-direction: column;
-    }
-
-    .action-buttons {
-      width: 100%;
-    }
-
-    .action-buttons button {
-      width: 100%;
-    }
-  }
+	.modal-footer form {
+		display: flex;
+		gap: 0.5rem;
+	}
 </style>

@@ -61,6 +61,20 @@ public class LessonController {
         );
     }
 
+    
+
+    // ✅ NEW: Get single lesson by ID
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<Lesson> getLessonById(
+            @PathVariable String courseId,
+            @PathVariable String lessonId) {
+
+        return lessonRepository.findById(lessonId)
+                .filter(lesson -> lesson.getCourseId().equals(courseId))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{lessonId}")
     public ResponseEntity<Lesson> updateLesson(
             @PathVariable String courseId,
