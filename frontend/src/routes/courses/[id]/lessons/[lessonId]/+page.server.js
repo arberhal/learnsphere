@@ -1,111 +1,48 @@
-import axios from "axios";
-import { API_BASE_URL } from '$env/static/private';
-import { fail, redirect } from '@sveltejs/kit';
+import axios from 'axios';
+import { redirect } from '@sveltejs/kit';
 
-export async function load({ params }) {
-    const courseId = params.courseId;
+export async function load({ params, locals }) {
+    const jwt_token = locals.jwt_token;
+    const courseId = params.id;
     const lessonId = params.lessonId;
 
+    // Check authentication
+    if (!locals.isAuthenticated || !jwt_token) {
+        throw redirect(303, '/login');
+    }
+
     try {
-        // Fetch course details
+        // Fetch lesson details
+        const lessonResponse = await axios.get(
+            `http://localhost:8080/api/teacher/courses/${courseId}/lessons/${lessonId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${jwt_token}`
+                }
+            }
+        );
+
+        // Fetch course info for breadcrumb
         const courseResponse = await axios.get(
-            `${API_BASE_URL}/api/teacher/courses/${courseId}`
+            `http://localhost:8080/api/teacher/courses/${courseId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${jwt_token}`
+                }
+            }
         );
-
-        // Fetch all lessons for the course
-        const lessonsResponse = await axios.get(
-            `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`
-        );
-
-        // Find the specific lesson
-        const lesson = lessonsResponse.data.find(l => l.id === lessonId);
-        
-        if (!lesson) {
-            throw redirect(303, `/courses/${courseId}`);
-        }
-
-        // Fetch student progress
-        let progress = null;
-        try {
-            const progressResponse = await axios.get(
-                `${API_BASE_URL}/api/student/progress/${courseId}`
-            );
-            progress = progressResponse.data;
-        } catch (error) {
-            // Progress might not exist yet, that's okay
-            console.log('No progress found yet');
-        }
 
         return {
-            course: courseResponse.data,
-            lesson: lesson,
-            allLessons: lessonsResponse.data,
-            totalLessons: lessonsResponse.data.length,
-            progress: progress
+            lesson: lessonResponse.data,
+            course: courseResponse.data
         };
     } catch (error) {
         console.error('Failed to load lesson:', error);
         
-        // Check if it's our redirect
-        if (error.status === 303) {
-            throw error;
+        if (error.response?.status === 404) {
+            throw redirect(303, `/courses/${courseId}`);
         }
         
-        throw redirect(303, '/');
+        throw redirect(303, '/courses');
     }
 }
-
-export const actions = {
-    // Mark lesson as completed
-    default: async ({ params }) => {
-        const courseId = params.courseId;
-        const lessonId = params.lessonId;
-
-        try {
-            // First, get all lessons to find the current lesson's order
-            const lessonsResponse = await axios.get(
-                `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`
-            );
-
-            const currentLesson = lessonsResponse.data.find(l => l.id === lessonId);
-            
-            if (!currentLesson) {
-                return fail(404, { 
-                    error: 'Lesson not found'
-                });
-            }
-
-            // Get current progress
-            let currentProgress = null;
-            try {
-                const progressResponse = await axios.get(
-                    `${API_BASE_URL}/api/student/progress/${courseId}`
-                );
-                currentProgress = progressResponse.data;
-            } catch (error) {
-                // No progress yet, start from 0
-                console.log('No existing progress');
-            }
-
-            // Calculate new completed lessons count
-            // If current lesson order is greater than current progress, update to current lesson order
-            const newCompletedLessons = currentProgress 
-                ? Math.max(currentProgress.completedLessons, currentLesson.order)
-                : currentLesson.order;
-
-            // Update progress
-            await axios.post(
-                `${API_BASE_URL}/api/student/progress/${courseId}/${newCompletedLessons}`
-            );
-
-            return { success: true };
-            
-        } catch (error) {
-            console.error('Failed to update progress:', error);
-            
-            return fail(500, { 
-                error: 'Failed to update progress. Please try again.'
-            });
-        }
-    }
-};
