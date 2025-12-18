@@ -1,202 +1,132 @@
 <script>
   let { data } = $props();
+
+  const currentLesson = $derived(
+    data.lessons.find((l) => l.id === data.lessonId) || data.lessons[0]
+  );
+
+  const currentIndex = $derived(
+    data.lessons.findIndex((l) => l.id === currentLesson?.id) ?? 0
+  );
+
+  const prevLesson = $derived.by(() => {
+    if (currentIndex > 0) {
+      return data.lessons[currentIndex - 1];
+    }
+    return null;
+  });
+
+  const nextLesson = $derived.by(() => {
+    if (currentIndex < data.lessons.length - 1) {
+      return data.lessons[currentIndex + 1];
+    }
+    return null;
+  });
+
+
 </script>
 
-<div class="container">
-  <div class="header">
-    <a href="/courses" class="back-link">← Back to Courses</a>
-  </div>
-
-  <!-- Course Header -->
-  <div class="course-header">
-    <div class="course-info">
-      <h1>{data.course.title}</h1>
-      <p class="description">{data.course.description}</p>
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-4">
+        <div class="flex items-center gap-4">
+          <a 
+            href="/courses/" 
+            class="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          >
+            ← Back to Courses
+          </a>
+          <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
+          <h1 class="hidden sm:block text-lg font-semibold text-gray-900 truncate max-w-md">
+            {data.course.title}
+          </h1>
+        </div>
+        
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="font-medium">Lesson {currentLesson?.order}</span>
+          <span class="text-gray-400">of {data.lessons.length}</span>
+        </div>
+      </div>
     </div>
-    
-    <div class="action-buttons">
-      <a href="/courses/{data.course.id}/edit" class="btn-edit">
-        Edit Course
-      </a>
-    </div>
-  </div>
+  </header>
 
-  <!-- Lessons Section -->
-  <section class="lessons-section">
-    <h2>Lessons</h2>
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
+    <!-- Lesson Content -->
+    <div class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+      <article class="max-w-3xl mx-auto">
+        <div class="flex justify-between items-start mb-6">
+          <h2 class="text-3xl font-bold text-gray-900 leading-tight">
+            {currentLesson?.title}
+          </h2>
+          <a 
+            href="/courses/{data.course.id}/edit"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </a>
+        </div>
 
-    {#if data.lessons.length === 0}
-      <p class="empty-state">No lessons available yet.</p>
-    {:else}
-      <ul class="lessons-list">
-        {#each data.lessons as lesson}
-          <li class="lesson-item">
-            <div class="lesson-info">
-              <span class="lesson-order">{lesson.order}.</span>
-              <strong>{lesson.title}</strong>
-            </div>
-            <a href={`/courses/${data.course.id}/lessons/${lesson.id}`} class="lesson-link">
-              Open lesson →
+        <div class="prose prose-lg max-w-none">
+          <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {currentLesson?.content || 'No content available.'}
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-200">
+          {#if prevLesson}
+            <a 
+              href="/courses/{data.course.id}/lessons/{prevLesson.id}"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+            >
+              ← Previous Lesson
             </a>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </section>
+          {:else}
+            <div></div>
+          {/if}
+
+         
+        </div>
+      </article>
+    </div>
+
+    <!-- Lessons Sidebar -->
+    <aside class="lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200">
+      <div class="sticky top-20 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Course Content</h3>
+        
+        <ul class="space-y-2">
+          {#each data.lessons as lesson, index}
+            <li>
+              <a 
+                href="/courses/{data.course.id}/lessons/{lesson.id}"
+                class="block px-4 py-3 rounded-lg transition-colors {lesson.id === currentLesson?.id 
+                  ? 'bg-blue-50 border border-blue-200' 
+                  : 'hover:bg-gray-50 border border-transparent'}"
+              >
+                <div class="flex items-start gap-3">
+                  <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold {lesson.id === currentLesson?.id 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'}">
+                    {lesson.order}
+                  </span>
+                  <span class="text-sm font-medium {lesson.id === currentLesson?.id 
+                    ? 'text-blue-700' 
+                    : 'text-gray-700'}">
+                    {lesson.title}
+                  </span>
+                </div>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </aside>
+  </main>
 </div>
-
-<style>
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .header {
-    margin-bottom: 2rem;
-  }
-
-  .back-link {
-    color: #2196F3;
-    text-decoration: none;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .back-link:hover {
-    text-decoration: underline;
-  }
-
-  .course-header {
-    background: #f9f9f9;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
-  }
-
-  .course-info {
-    flex: 1;
-  }
-
-  h1 {
-    margin: 0 0 1rem 0;
-    color: #333;
-    font-size: 2rem;
-  }
-
-  .description {
-    margin: 0;
-    color: #666;
-    font-size: 1.1rem;
-    line-height: 1.6;
-  }
-
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    min-width: 150px;
-  }
-
-  .btn-edit {
-    padding: 0.75rem 1.5rem;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    text-decoration: none;
-    text-align: center;
-  }
-
-  .btn-edit:hover {
-    background-color: #1976D2;
-  }
-
-  /* Lessons Section */
-  .lessons-section {
-    margin-top: 2rem;
-  }
-
-  .lessons-section h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: #999;
-    padding: 2rem;
-    font-style: italic;
-  }
-
-  .lessons-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .lesson-item {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 0.75rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s;
-  }
-
-  .lesson-item:hover {
-    border-color: #2196F3;
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
-  }
-
-  .lesson-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .lesson-order {
-    color: #2196F3;
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-
-  .lesson-link {
-    color: #2196F3;
-    text-decoration: none;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .lesson-link:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 768px) {
-    .course-header {
-      flex-direction: column;
-    }
-
-    .action-buttons {
-      width: 100%;
-    }
-
-    .action-buttons a {
-      width: 100%;
-    }
-  }
-</style>

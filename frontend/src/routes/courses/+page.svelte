@@ -4,150 +4,55 @@
   let courses = $derived(data.courses || []);
 </script>
 
-<div class="container">
-  <div class="header">
-    <h1>All Courses</h1>
-    <p class="subtitle">Browse all available courses</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-16 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Elegant header with refined typography -->
+    <div class="text-center mb-16">
+      <h1 class="text-5xl font-bold text-slate-900 mb-4 tracking-tight">Discover Courses</h1>
+      <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">Expand your knowledge with our curated selection of courses</p>
+    </div>
+
+    {#if courses.length === 0}
+      <!-- Refined empty state with soft shadows and better visual balance -->
+      <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-16 text-center max-w-2xl mx-auto">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full mb-8">
+          <svg class="w-12 h-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <h2 class="text-3xl font-bold text-slate-800 mb-3">No Courses Yet</h2>
+        <p class="text-lg text-slate-500">New learning opportunities are coming soon!</p>
+      </div>
+    {:else}
+      <!-- Enhanced grid with premium card design -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {#each courses as course}
+          <a 
+            href="/courses/{course.id}" 
+            class="group bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-blue-300 flex flex-col"
+          >
+            <!-- Eye-catching header with subtle gradient and better contrast -->
+            <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-8 relative overflow-hidden">
+              <!-- Decorative element for visual interest -->
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-16 translate-x-16"></div>
+              <h3 class="text-2xl font-bold text-white line-clamp-2 relative z-10 leading-tight">{course.title}</h3>
+            </div>
+            
+            <!-- Clean content area with optimal spacing -->
+            <div class="p-8 flex-1 flex flex-col">
+              <p class="text-slate-600 leading-relaxed line-clamp-3 mb-6 flex-1">{course.description}</p>
+              
+              <!-- Call-to-action with smooth transition -->
+              <div class="flex items-center gap-2 text-blue-600 font-semibold group-hover:text-blue-700 group-hover:gap-3 transition-all">
+                <span>Explore Course</span>
+                <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        {/each}
+      </div>
+    {/if}
   </div>
-
-  {#if courses.length === 0}
-    <div class="empty-state">
-      <div class="empty-icon">📚</div>
-      <h2>No courses available yet</h2>
-      <p>Check back later for new courses!</p>
-    </div>
-  {:else}
-    <div class="courses-grid">
-      {#each courses as course}
-        <a href="/courses/{course.id}" class="course-card">
-          <div class="course-header">
-            <h3>{course.title}</h3>
-          </div>
-          <div class="course-body">
-            <p class="course-description">{course.description}</p>
-          </div>
-          <div class="course-footer">
-            <button class="btn-view">View Course →</button>
-          </div>
-        </a>
-      {/each}
-    </div>
-  {/if}
 </div>
-
-<style>
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .header {
-    margin-bottom: 3rem;
-    text-align: center;
-  }
-
-  .header h1 {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 0.5rem;
-  }
-
-  .subtitle {
-    font-size: 1.1rem;
-    color: #666;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-  }
-
-  .empty-state h2 {
-    color: #666;
-    margin-bottom: 0.5rem;
-  }
-
-  .empty-state p {
-    color: #999;
-  }
-
-  .courses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-  }
-
-  .course-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .course-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-  }
-
-  .course-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1.5rem;
-  }
-
-  .course-header h3 {
-    margin: 0;
-    font-size: 1.3rem;
-  }
-
-  .course-body {
-    padding: 1.5rem;
-    flex: 1;
-  }
-
-  .course-description {
-    color: #666;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  .course-footer {
-    padding: 0 1.5rem 1.5rem 1.5rem;
-  }
-
-  .btn-view {
-    width: 100%;
-    padding: 0.75rem;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .btn-view:hover {
-    background: #5568d3;
-  }
-
-  @media (max-width: 768px) {
-    .courses-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
