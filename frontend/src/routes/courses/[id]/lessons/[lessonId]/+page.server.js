@@ -12,7 +12,7 @@ export async function load({ params, locals }) {
     }
 
     try {
-        // Fetch lesson details
+        // Fetch lesson details (PUBLIC endpoint)
         const lessonResponse = await axios.get(
             `http://localhost:8080/api/teacher/courses/${courseId}/lessons/${lessonId}`,
             {
@@ -22,9 +22,9 @@ export async function load({ params, locals }) {
             }
         );
 
-        // Fetch course info for breadcrumb
+        // Fetch course info for breadcrumb (PUBLIC endpoint)
         const courseResponse = await axios.get(
-            `http://localhost:8080/api/teacher/courses/${courseId}`,
+            `http://localhost:8080/api/courses/${courseId}`,  // ✅ Changed from /teacher/courses
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`

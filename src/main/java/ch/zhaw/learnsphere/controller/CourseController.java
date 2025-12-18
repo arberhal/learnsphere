@@ -1,6 +1,7 @@
 package ch.zhaw.learnsphere.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,21 +20,83 @@ import ch.zhaw.learnsphere.model.Course;
 import ch.zhaw.learnsphere.model.CourseCreateDTO;
 import ch.zhaw.learnsphere.model.CourseUpdateDTO;
 import ch.zhaw.learnsphere.repository.CourseRepository;
+import ch.zhaw.learnsphere.repository.ProgressRepository;
 import ch.zhaw.learnsphere.service.UserService;
 
 @RestController
-@RequestMapping("/api/teacher")
+@RequestMapping("/api")
 public class CourseController {
 
     private final CourseRepository courseRepository;
+    private final ProgressRepository progressRepository;
     private final UserService userService;
 
-    public CourseController(CourseRepository courseRepository, UserService userService) {
+    public CourseController(
+            CourseRepository courseRepository, 
+            ProgressRepository progressRepository,
+            UserService userService) {
         this.courseRepository = courseRepository;
+        this.progressRepository = progressRepository;
         this.userService = userService;
     }
 
-    @PostMapping("/courses")
+    // ========================================
+    // PUBLIC ENDPOINTS (All authenticated users)
+    // ========================================
+
+    /**
+     * GET /api/courses
+     * Returns ALL available courses (for browsing)
+     */
+    @GetMapping("/courses")
+    public ResponseEntity<List<Course>> getAllCourses() {
+        return ResponseEntity.ok(courseRepository.findAll());
+    }
+
+    /**
+     * GET /api/courses/{id}
+     * Returns a single course by ID
+     */
+    @GetMapping("/courses/{id}")
+    public ResponseEntity<Course> getCourseById(@PathVariable String id) {
+        return courseRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * GET /api/my-courses
+     * Returns only courses where the current user has made progress
+     */
+    @GetMapping("/my-courses")
+    public ResponseEntity<List<Course>> getMyCourses(
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String studentSub = jwt.getSubject();
+        
+        // Get all progress records for this user
+        List<String> courseIdsWithProgress = progressRepository
+                .findByStudentSub(studentSub)
+                .stream()
+                .map(progress -> progress.getCourseId())
+                .collect(Collectors.toList());
+        
+        // Get courses for those IDs
+        List<Course> myCourses = courseRepository
+                .findAllById(courseIdsWithProgress);
+        
+        return ResponseEntity.ok(myCourses);
+    }
+
+    // ========================================
+    // TEACHER ENDPOINTS (Teacher role required)
+    // ========================================
+
+    /**
+     * POST /api/teacher/courses
+     * Create a new course (Teachers only)
+     */
+    @PostMapping("/teacher/courses")
     public ResponseEntity<?> createCourse(
             @RequestBody CourseCreateDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
@@ -55,8 +118,12 @@ public class CourseController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    @GetMapping("/courses")
-    public ResponseEntity<List<Course>> getCourses(
+    /**
+     * GET /api/teacher/courses
+     * Get courses created by the authenticated teacher
+     */
+    @GetMapping("/teacher/courses")
+    public ResponseEntity<List<Course>> getTeacherCourses(
             @AuthenticationPrincipal Jwt jwt) {
         
         String teacherSub = jwt.getSubject();
@@ -66,8 +133,12 @@ public class CourseController {
         );
     }
 
-    @GetMapping("/courses/{courseId}")
-    public ResponseEntity<Course> getCourseById(
+    /**
+     * GET /api/teacher/courses/{courseId}
+     * Get a specific course (only if it belongs to the teacher)
+     */
+    @GetMapping("/teacher/courses/{courseId}")
+    public ResponseEntity<Course> getTeacherCourseById(
             @PathVariable String courseId,
             @AuthenticationPrincipal Jwt jwt) {
         
@@ -79,7 +150,11 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/courses/{courseId}")
+    /**
+     * PUT /api/teacher/courses/{courseId}
+     * Update a course (Teachers only, own courses only)
+     */
+    @PutMapping("/teacher/courses/{courseId}")
     public ResponseEntity<?> updateCourse(
             @PathVariable String courseId,
             @RequestBody CourseUpdateDTO dto,
@@ -103,7 +178,11 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/courses/{courseId}")
+    /**
+     * DELETE /api/teacher/courses/{courseId}
+     * Delete a course (Teachers only, own courses only)
+     */
+    @DeleteMapping("/teacher/courses/{courseId}")
     public ResponseEntity<?> deleteCourse(
             @PathVariable String courseId,
             @AuthenticationPrincipal Jwt jwt) {
