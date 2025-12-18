@@ -1,16 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from '$env/static/private';
 
-export const actions = {
-	default: async ({ cookies, url }) => {
-		// Clear our app's cookies
-		cookies.set('jwt_token', '', { path: '/', maxAge: 0 });
-		cookies.set('user_info', '', { path: '/', maxAge: 0 });
-		
-		// Redirect to Auth0 logout endpoint which will then redirect back to our app
-		const returnTo = encodeURIComponent(`${url.origin}/`);
-		const logoutUrl = `https://${AUTH0_DOMAIN}/v2/logout?client_id=${AUTH0_CLIENT_ID}&returnTo=${returnTo}`;
-		
-		throw redirect(303, logoutUrl);
-	}
-};
+export function load({ cookies }) {
+    // Clear the JWT cookie
+    cookies.delete('jwt_token', { path: '/' });
+    
+    // Redirect to login
+    throw redirect(303, '/login');
+} 

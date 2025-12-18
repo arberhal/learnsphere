@@ -1,6 +1,6 @@
 export async function load({ locals }) {
-	return {
-		user: locals.user,
-		isAuthenticated: locals.isAuthenticated
-	};
+    return {
+        isAuthenticated: locals.isAuthenticated || false,
+        user: locals.user || null
+    };
 }
