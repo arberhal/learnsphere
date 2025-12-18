@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { error } from '@sveltejs/kit';
+import { API_BASE_URL } from '$env/static/private';
 
 export async function load({ params, locals }) {
     const jwt_token = locals.jwt_token;
@@ -10,9 +11,8 @@ export async function load({ params, locals }) {
     }
 
     try {
-        // Use PUBLIC endpoint instead of teacher-only endpoint
         const courseResponse = await axios.get(
-            `http://localhost:8080/api/courses/${courseId}`,
+            `${API_BASE_URL}/api/courses/${courseId}`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`
@@ -22,9 +22,8 @@ export async function load({ params, locals }) {
 
         const course = courseResponse.data;
 
-        // Fetch lessons for this course
         const lessonsResponse = await axios.get(
-            `http://localhost:8080/api/teacher/courses/${courseId}/lessons`,
+            `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`
@@ -34,11 +33,10 @@ export async function load({ params, locals }) {
 
         const lessons = lessonsResponse.data;
 
-        // Fetch student progress
-        let progress = null;
+        let progress;
         try {
             const progressResponse = await axios.get(
-                `http://localhost:8080/api/student/progress/${courseId}`,
+                `${API_BASE_URL}/api/student/progress/${courseId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt_token}`
@@ -46,8 +44,7 @@ export async function load({ params, locals }) {
                 }
             );
             progress = progressResponse.data;
-        } catch (err) {
-            // No progress yet, that's okay
+        } catch {
             progress = { completedLessons: 0, percent: 0 };
         }
 
