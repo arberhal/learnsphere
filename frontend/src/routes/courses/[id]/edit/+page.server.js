@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { fail, redirect } from '@sveltejs/kit';
+import { API_BASE_URL } from '$env/static/private';
 
 export async function load({ params, locals }) {
     const jwt_token = locals.jwt_token;
@@ -12,7 +13,7 @@ export async function load({ params, locals }) {
     try {
         // Fetch course details
         const courseResponse = await axios.get(
-            `http://localhost:8080/api/teacher/courses/${courseId}`,
+            `${API_BASE_URL}/api/teacher/courses/${courseId}`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`
@@ -22,7 +23,7 @@ export async function load({ params, locals }) {
 
         // Fetch existing lessons
         const lessonsResponse = await axios.get(
-            `http://localhost:8080/api/teacher/courses/${courseId}/lessons`,
+            `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`
@@ -66,7 +67,7 @@ export const actions = {
 
         try {
             await axios.put(
-                `http://localhost:8080/api/teacher/courses/${courseId}`,
+                `${API_BASE_URL}/api/teacher/courses/${courseId}`,
                 {
                     title: title.trim(),
                     description: description.trim()
@@ -97,7 +98,7 @@ export const actions = {
 
         try {
             await axios.delete(
-                `http://localhost:8080/api/teacher/courses/${courseId}`,
+                `${API_BASE_URL}/api/teacher/courses/${courseId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt_token}`
@@ -152,7 +153,7 @@ export const actions = {
 
         try {
             await axios.post(
-                `http://localhost:8080/api/teacher/courses/${courseId}/lessons`,
+                `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`,
                 {
                     title: title.trim(),
                     content: content.trim(),
@@ -192,7 +193,7 @@ export const actions = {
 
         try {
             await axios.put(
-                `http://localhost:8080/api/teacher/courses/${courseId}/lessons/${lessonId}`,
+                `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons/${lessonId}`,
                 {
                     title: title.trim(),
                     content: content.trim(),
@@ -227,7 +228,7 @@ export const actions = {
 
         try {
             await axios.delete(
-                `http://localhost:8080/api/teacher/courses/${courseId}/lessons/${lessonId}`,
+                `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons/${lessonId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt_token}`
