@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
 
-  export let form;
+  let { form } = $props();
 
-  let isSubmitting = false;
-  let lessons = [];
+  let isSubmitting = $state(false);
+  let lessons = $state([]);
   let nextLessonId = 1;
 
   // Add a new lesson input
@@ -71,16 +71,16 @@
   }
 </script>
 
-<div class="container">
-  <h1>Create New Course</h1>
+<div class="max-w-4xl mx-auto my-8 px-4 md:px-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-8">Create New Course</h1>
 
   <form method="POST" use:enhance={handleEnhance}>
     <!-- Course Details Section -->
-    <section class="section">
-      <h2>Course Details</h2>
+    <section class="bg-gray-50 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-6">Course Details</h2>
       
-      <div class="form-group">
-        <label for="title">Course Title *</label>
+      <div class="mb-4">
+        <label for="title" class="block mb-2 text-sm font-semibold text-gray-600">Course Title *</label>
         <input
           type="text"
           id="title"
@@ -89,14 +89,15 @@
           placeholder="Enter course title"
           disabled={isSubmitting}
           value={form?.title || ''}
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
         />
         {#if form?.errors?.title}
-          <span class="error">{form.errors.title}</span>
+          <span class="block text-red-600 text-sm mt-1">{form.errors.title}</span>
         {/if}
       </div>
 
-      <div class="form-group">
-        <label for="description">Description *</label>
+      <div class="mb-0">
+        <label for="description" class="block mb-2 text-sm font-semibold text-gray-600">Description *</label>
         <textarea
           id="description"
           name="description"
@@ -105,35 +106,41 @@
           placeholder="Enter course description"
           disabled={isSubmitting}
           value={form?.description || ''}
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
         ></textarea>
         {#if form?.errors?.description}
-          <span class="error">{form.errors.description}</span>
+          <span class="block text-red-600 text-sm mt-1">{form.errors.description}</span>
         {/if}
       </div>
     </section>
 
     <!-- Lessons Section -->
-    <section class="section">
-      <div class="section-header">
-        <h2>Lessons (Optional)</h2>
-        <button type="button" class="btn-add-lesson" on:click={addLesson} disabled={isSubmitting}>
+    <section class="bg-gray-50 rounded-lg p-6 mb-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-700">Lessons (Optional)</h2>
+        <button 
+          type="button" 
+          class="px-4 py-2 bg-blue-500 text-white rounded font-semibold text-sm hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed" 
+          onclick={addLesson} 
+          disabled={isSubmitting}
+        >
           + Add Lesson
         </button>
       </div>
 
       {#if lessons.length === 0}
-        <p class="empty-state">No lessons added yet. Click "Add Lesson" to create your first lesson.</p>
+        <p class="text-center text-gray-400 py-8 italic">No lessons added yet. Click "Add Lesson" to create your first lesson.</p>
       {/if}
 
       {#each lessons as lesson, index (lesson.id)}
-        <div class="lesson-card">
-          <div class="lesson-header">
-            <span class="lesson-number">Lesson {lesson.order}</span>
-            <div class="lesson-controls">
+        <div class="bg-white rounded-md p-6 mb-4 border border-gray-200">
+          <div class="flex justify-between items-center mb-4 pb-3 border-b-2 border-gray-100">
+            <span class="font-bold text-blue-500 text-base">Lesson {lesson.order}</span>
+            <div class="flex gap-2">
               <button 
                 type="button" 
-                class="btn-icon" 
-                on:click={() => moveLessonUp(index)}
+                class="w-8 h-8 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 hover:border-gray-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-base" 
+                onclick={() => moveLessonUp(index)}
                 disabled={index === 0 || isSubmitting}
                 title="Move up"
               >
@@ -141,8 +148,8 @@
               </button>
               <button 
                 type="button" 
-                class="btn-icon" 
-                on:click={() => moveLessonDown(index)}
+                class="w-8 h-8 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 hover:border-gray-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-base" 
+                onclick={() => moveLessonDown(index)}
                 disabled={index === lessons.length - 1 || isSubmitting}
                 title="Move down"
               >
@@ -150,8 +157,8 @@
               </button>
               <button 
                 type="button" 
-                class="btn-remove" 
-                on:click={() => removeLesson(lesson.id)}
+                class="w-8 h-8 bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 hover:border-red-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-lg" 
+                onclick={() => removeLesson(lesson.id)}
                 disabled={isSubmitting}
                 title="Remove lesson"
               >
@@ -162,8 +169,8 @@
 
           <input type="hidden" name="lessons[{index}].order" value={lesson.order} />
 
-          <div class="form-group">
-            <label for="lesson-title-{lesson.id}">Lesson Title *</label>
+          <div class="mb-4">
+            <label for="lesson-title-{lesson.id}" class="block mb-2 text-sm font-semibold text-gray-600">Lesson Title *</label>
             <input
               type="text"
               id="lesson-title-{lesson.id}"
@@ -172,11 +179,12 @@
               required
               placeholder="Enter lesson title"
               disabled={isSubmitting}
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
             />
           </div>
 
-          <div class="form-group">
-            <label for="lesson-content-{lesson.id}">Content *</label>
+          <div class="mb-4">
+            <label for="lesson-content-{lesson.id}" class="block mb-2 text-sm font-semibold text-gray-600">Content *</label>
             <textarea
               id="lesson-content-{lesson.id}"
               name="lessons[{index}].content"
@@ -185,11 +193,12 @@
               rows="3"
               placeholder="Enter lesson content"
               disabled={isSubmitting}
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
             ></textarea>
           </div>
 
-          <div class="form-group">
-            <label for="lesson-video-{lesson.id}">Video URL (Optional)</label>
+          <div class="mb-0">
+            <label for="lesson-video-{lesson.id}" class="block mb-2 text-sm font-semibold text-gray-600">Video URL (Optional)</label>
             <input
               type="url"
               id="lesson-video-{lesson.id}"
@@ -197,6 +206,7 @@
               bind:value={lesson.videoUrl}
               placeholder="https://youtube.com/watch?v=..."
               disabled={isSubmitting}
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
             />
           </div>
         </div>
@@ -204,273 +214,31 @@
     </section>
 
     {#if form?.error}
-      <div class="error-message">
+      <div class="px-3 py-2 bg-red-50 text-red-800 rounded mb-4">
         {form.error}
       </div>
     {/if}
 
     {#if form?.success}
-      <div class="success-message">
+      <div class="px-3 py-2 bg-green-50 text-green-800 rounded mb-4">
         Course and lessons created successfully! Redirecting...
       </div>
     {/if}
 
-    <div class="button-group">
-      <button type="submit" disabled={isSubmitting} class="btn-primary">
+    <div class="flex gap-4 mt-8">
+      <button 
+        type="submit" 
+        disabled={isSubmitting} 
+        class="flex-1 px-6 py-3 bg-green-500 text-white rounded text-base font-semibold hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
         {isSubmitting ? 'Creating...' : 'Create Course'}
       </button>
-      <a href="/" class="btn-cancel">Cancel</a>
+      <a 
+        href="/" 
+        class="flex-1 px-6 py-3 bg-gray-100 text-gray-900 border border-gray-300 rounded text-base font-semibold text-center hover:bg-gray-200 transition-colors flex items-center justify-center"
+      >
+        Cancel
+      </a>
     </div>
   </form>
 </div>
-
-<style>
-  .container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-  }
-
-  h1 {
-    margin-bottom: 2rem;
-    color: #333;
-  }
-
-  .section {
-    background: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-  }
-
-  .section h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #444;
-    font-size: 1.25rem;
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .section-header h2 {
-    margin: 0;
-  }
-
-  .btn-add-lesson {
-    padding: 0.5rem 1rem;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .btn-add-lesson:hover:not(:disabled) {
-    background-color: #1976D2;
-  }
-
-  .btn-add-lesson:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: #999;
-    padding: 2rem;
-    font-style: italic;
-  }
-
-  .lesson-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    border: 1px solid #e0e0e0;
-  }
-
-  .lesson-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0f0f0;
-  }
-
-  .lesson-number {
-    font-weight: 700;
-    color: #2196F3;
-    font-size: 1rem;
-  }
-
-  .lesson-controls {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-icon {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
-  }
-
-  .btn-icon:hover:not(:disabled) {
-    background-color: #e0e0e0;
-    border-color: #bbb;
-  }
-
-  .btn-icon:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .btn-remove {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ffcdd2;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: all 0.2s;
-  }
-
-  .btn-remove:hover:not(:disabled) {
-    background-color: #ffcdd2;
-    border-color: #e57373;
-  }
-
-  .btn-remove:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  .form-group:last-child {
-    margin-bottom: 0;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #555;
-    font-size: 0.9rem;
-  }
-
-  input,
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-
-  input:focus,
-  textarea:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-  }
-
-  input:disabled,
-  textarea:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-  }
-
-  .error {
-    display: block;
-    color: #d32f2f;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-
-  .error-message {
-    padding: 0.75rem;
-    background-color: #ffebee;
-    color: #c62828;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-
-  .success-message {
-    padding: 0.75rem;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-
-  .button-group {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-
-  .btn-primary {
-    flex: 1;
-    padding: 0.75rem 1.5rem;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    background-color: #45a049;
-  }
-
-  .btn-primary:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-
-  .btn-cancel {
-    flex: 1;
-    padding: 0.75rem 1.5rem;
-    background-color: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-cancel:hover {
-    background-color: #eeeeee;
-  }
-</style>

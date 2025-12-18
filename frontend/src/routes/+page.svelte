@@ -1,30 +1,30 @@
 <script>
 	let { data } = $props();
 	let { isAuthenticated } = data;
+	  import "../app.css";
 </script>
 
-{#if isAuthenticated}
-	<h1>Welcome to Learnsphere!</h1>
-	<p>Your Learning Management System for creating and taking courses.</p>
-	<div class="mt-4">
-		<a href="/courses" class="btn btn-primary">View Courses</a>
-	</div>
-{:else}
-	<div class="container mt-5">
-		<div class="row justify-content-center">
-			<div class="col-md-6">
-				<div class="card">
-					<div class="card-header">Welcome to Learnsphere</div>
-					<div class="card-body text-center">
-						<h5 class="card-title">Get Started</h5>
-						<p class="card-text">
-							Please log in to access your courses or sign up to create a new account.
-						</p>
-						<a href="/login" class="btn btn-primary me-2">Login</a>
-						<a href="/signup" class="btn btn-outline-primary">Sign Up</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-{/if}
+<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+  <div class="text-center">
+    <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+      Welcome to LearnSphere
+    </h1>
+    <p class="mt-6 text-lg leading-8 text-muted-foreground">
+      Your modern learning platform for teachers and students
+    </p>
+    <div class="mt-10 flex items-center justify-center gap-x-6">
+      {#if data.isAuthenticated}
+        <a href="/courses" class="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md">
+          Browse Courses
+        </a>
+      {:else}
+        <a href="/signup" class="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md">
+          Get Started
+        </a>
+        <a href="/login" class="text-sm font-semibold leading-6 text-foreground hover:text-primary">
+          Login <span aria-hidden="true">→</span>
+        </a>
+      {/if}
+    </div>
+  </div>
+</div>

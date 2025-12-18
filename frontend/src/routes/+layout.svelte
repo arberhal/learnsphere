@@ -15,298 +15,188 @@
   
   // Current path for active link highlighting
   let currentPath = $derived($page.url.pathname);
+  
+  // Mobile menu state
+  let mobileMenuOpen = $state(false);
 </script>
 
-<div class="app">
+<div class="flex min-h-screen flex-col bg-background">
   <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <!-- Logo/Brand -->
-      <a href="/" class="brand">
-        <span class="brand-icon">📚</span>
-        <span class="brand-text">LearnSphere</span>
-      </a>
-
-      <!-- Navigation Links -->
-      <div class="nav-links">
-        {#if isAuthenticated}
-          <!-- Common Links (All Authenticated Users) -->
-          <a 
-            href="/courses" 
-            class="nav-link"
-            class:active={currentPath.startsWith('/courses')}
-          >
-            Courses
-          </a>
-
-          <!-- Teacher-Only Links -->
-          {#if isTeacher}
-            <a 
-              href="/courses/create" 
-              class="nav-link teacher-link"
-              class:active={currentPath === '/courses/create'}
-            >
-              <span class="link-icon">➕</span>
-              Create Course
-            </a>
-          {/if}
-
-          <!-- Student-Only Links -->
-          {#if isStudent}
-            <a 
-              href="/my-courses" 
-              class="nav-link student-link"
-              class:active={currentPath === '/my-courses'}
-            >
-              <span class="link-icon">📖</span>
-              My Courses
-            </a>
-          {/if}
-
-          <!-- User Menu -->
-          <div class="user-menu">
-            <span class="user-name">{data.user?.name || data.user?.email || 'User'}</span>
-            {#if isTeacher}
-              <span class="badge badge-teacher">Teacher</span>
-            {:else if isStudent}
-              <span class="badge badge-student">Student</span>
-            {/if}
-            <a href="/logout" class="nav-link logout-link">Logout</a>
+  <nav class="sticky top-0 z-50 border-b border-border bg-white/80 backdrop-blur-lg">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <!-- Logo/Brand -->
+        <a href="/" class="group flex items-center gap-3 transition-transform hover:scale-105">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-xl shadow-lg">
+            📚
           </div>
-        {:else}
-          <!-- Not Authenticated -->
-          <a href="/login" class="nav-link">Login</a>
-          <a href="/signup" class="nav-link btn-primary">Sign Up</a>
-        {/if}
+          <span class="text-xl font-bold text-foreground">LearnSphere</span>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden items-center gap-2 md:flex">
+          {#if isAuthenticated}
+            <!-- Common Links -->
+            <a 
+              href="/courses" 
+              class="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground {currentPath.startsWith('/courses') && !currentPath.includes('create') ? 'bg-accent' : ''}"
+            >
+              Courses
+            </a>
+
+            <!-- Teacher-Only Links -->
+            {#if isTeacher}
+              <a 
+                href="/courses/create" 
+                class="flex items-center gap-2 rounded-lg bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-700 transition-all hover:bg-amber-500/20 {currentPath === '/courses/create' ? 'bg-amber-500/20 shadow-sm' : ''}"
+              >
+                <span>➕</span>
+                Create Course
+              </a>
+            {/if}
+
+            <!-- Student-Only Links -->
+            {#if isStudent}
+              <a 
+                href="/my-courses" 
+                class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-all hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20 shadow-sm' : ''}"
+              >
+                <span>📖</span>
+                My Courses
+              </a>
+            {/if}
+
+            <!-- User Menu -->
+            <div class="ml-4 flex items-center gap-3 border-l border-border pl-4">
+              <div class="flex flex-col items-end">
+                <span class="text-sm font-medium text-foreground">{data.user?.name || data.user?.email || 'User'}</span>
+                {#if isTeacher}
+                  <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">Teacher</span>
+                {:else if isStudent}
+                  <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">Student</span>
+                {/if}
+              </div>
+              <a 
+                href="/logout" 
+                class="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all hover:bg-red-100 hover:shadow-sm"
+              >
+                Logout
+              </a>
+            </div>
+          {:else}
+            <!-- Not Authenticated -->
+            <a href="/login" class="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+              Login
+            </a>
+            <a href="/signup" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md">
+              Sign Up
+            </a>
+          {/if}
+        </div>
+
+        <!-- Mobile menu button -->
+        <button 
+          onclick={() => mobileMenuOpen = !mobileMenuOpen}
+          class="inline-flex items-center justify-center rounded-lg p-2 text-foreground transition-colors hover:bg-accent md:hidden"
+          aria-label="Toggle menu"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {#if mobileMenuOpen}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            {:else}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            {/if}
+          </svg>
+        </button>
       </div>
+
+      <!-- Mobile Navigation Menu -->
+      {#if mobileMenuOpen}
+        <div class="border-t border-border py-4 md:hidden">
+          {#if isAuthenticated}
+            <div class="space-y-1">
+              <a 
+                href="/courses" 
+                class="block rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent {currentPath.startsWith('/courses') && !currentPath.includes('create') ? 'bg-accent' : ''}"
+              >
+                Courses
+              </a>
+
+              {#if isTeacher}
+                <a 
+                  href="/courses/create" 
+                  class="flex items-center gap-2 rounded-lg bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-500/20 {currentPath === '/courses/create' ? 'bg-amber-500/20' : ''}"
+                >
+                  <span>➕</span>
+                  Create Course
+                </a>
+              {/if}
+
+              {#if isStudent}
+                <a 
+                  href="/my-courses" 
+                  class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20' : ''}"
+                >
+                  <span>📖</span>
+                  My Courses
+                </a>
+              {/if}
+
+              <div class="border-t border-border pt-4 mt-4">
+                <div class="px-4 py-2">
+                  <p class="text-sm font-medium text-foreground">{data.user?.name || data.user?.email || 'User'}</p>
+                  <div class="mt-1">
+                    {#if isTeacher}
+                      <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">Teacher</span>
+                    {:else if isStudent}
+                      <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">Student</span>
+                    {/if}
+                  </div>
+                </div>
+                <a 
+                  href="/logout" 
+                  class="mt-2 block rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+                >
+                  Logout
+                </a>
+              </div>
+            </div>
+          {:else}
+            <div class="space-y-1">
+              <a href="/login" class="block rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent">
+                Login
+              </a>
+              <a href="/signup" class="block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+                Sign Up
+              </a>
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="main-content">
+  <main class="flex-1">
     {@render children()}
   </main>
 
   <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-content">
-      <p>&copy; 2025 LearnSphere. All rights reserved.</p>
-      {#if isAuthenticated}
-        <p class="footer-user-info">
-          Logged in as: {data.user?.email || 'Unknown'}
-          {#if isTeacher}
-            (Teacher)
-          {:else if isStudent}
-            (Student)
-          {/if}
-        </p>
-      {/if}
+  <footer class="border-t border-border bg-muted/30">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p class="text-sm text-muted-foreground">&copy; 2025 LearnSphere. All rights reserved.</p>
+        {#if isAuthenticated}
+          <p class="text-sm text-muted-foreground">
+            Logged in as <span class="font-medium text-foreground">{data.user?.email || 'Unknown'}</span>
+            {#if isTeacher}
+              <span class="ml-2 text-amber-700">(Teacher)</span>
+            {:else if isStudent}
+              <span class="ml-2 text-blue-700">(Student)</span>
+            {/if}
+          </p>
+        {/if}
+      </div>
     </div>
   </footer>
 </div>
-
-<style>
-  .app {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Navigation Bar */
-  .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 700;
-    transition: transform 0.2s;
-  }
-
-  .brand:hover {
-    transform: scale(1.05);
-  }
-
-  .brand-icon {
-    font-size: 2rem;
-  }
-
-  .brand-text {
-    font-weight: 700;
-  }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .nav-link {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    transition: all 0.2s;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  .nav-link.active {
-    background: rgba(255, 255, 255, 0.3);
-    font-weight: 600;
-  }
-
-  .teacher-link {
-    background: rgba(255, 193, 7, 0.2);
-  }
-
-  .teacher-link:hover {
-    background: rgba(255, 193, 7, 0.3);
-  }
-
-  .student-link {
-    background: rgba(33, 150, 243, 0.2);
-  }
-
-  .student-link:hover {
-    background: rgba(33, 150, 243, 0.3);
-  }
-
-  .link-icon {
-    font-size: 1.1rem;
-  }
-
-  .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-left: 1rem;
-    padding-left: 1rem;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
-  .user-name {
-    color: white;
-    font-weight: 500;
-  }
-
-  .badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .badge-teacher {
-    background: #ffc107;
-    color: #000;
-  }
-
-  .badge-student {
-    background: #2196f3;
-    color: white;
-  }
-
-  .logout-link {
-    background: rgba(244, 67, 54, 0.2);
-  }
-
-  .logout-link:hover {
-    background: rgba(244, 67, 54, 0.3);
-  }
-
-  .btn-primary {
-    background: white;
-    color: #667eea;
-    font-weight: 600;
-  }
-
-  .btn-primary:hover {
-    background: rgba(255, 255, 255, 0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Main Content */
-  .main-content {
-    flex: 1;
-    background: #f5f5f5;
-  }
-
-  /* Footer */
-  .footer {
-    background: #333;
-    color: white;
-    padding: 2rem 0;
-    margin-top: auto;
-  }
-
-  .footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    text-align: center;
-  }
-
-  .footer-user-info {
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    opacity: 0.8;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .nav-container {
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .nav-links {
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .user-menu {
-      flex-direction: column;
-      margin-left: 0;
-      padding-left: 0;
-      border-left: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.3);
-      padding-top: 1rem;
-    }
-
-    .brand-text {
-      display: none;
-    }
-  }
-
-  /* Global Styles */
-  :global(body) {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  }
-</style>
