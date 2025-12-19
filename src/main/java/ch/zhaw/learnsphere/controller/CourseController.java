@@ -3,6 +3,8 @@ package ch.zhaw.learnsphere.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,6 +32,9 @@ public class CourseController {
     private final CourseRepository courseRepository;
     private final ProgressRepository progressRepository;
     private final UserService userService;
+
+    @Autowired
+    private ChatClient chatClient;
 
     public CourseController(
             CourseRepository courseRepository, 
@@ -95,6 +100,7 @@ public class CourseController {
     /**
      * POST /api/teacher/courses
      * Create a new course (Teachers only)
+     * ✨ WITH AI TITLE GENERATION ✨
      */
     @PostMapping("/teacher/courses")
     public ResponseEntity<?> createCourse(
@@ -109,8 +115,40 @@ public class CourseController {
 
         String teacherSub = jwt.getSubject();
         
+        // ✨ AI TITLE GENERATION ✨
+        String improvedTitle = dto.getTitle();
+        try {
+            String promptText = String.format(
+                "Improve this course title: '%s'. " +
+                "Based on this description: %s. " +
+                "Return ONLY the improved title, nothing else. " +
+                "Keep it concise (max 60 characters) and professional.",
+                dto.getTitle(), 
+                dto.getDescription()
+            );
+            
+            // Use ChatClient
+            String aiTitle = chatClient.prompt()
+                    .user(promptText)
+                    .call()
+                    .content()
+                    .trim();
+            
+            // Remove quotes if AI added them
+            aiTitle = aiTitle.replaceAll("^\"|\"$", "").trim();
+            
+            // Only use AI title if it's reasonable length
+            if (aiTitle.length() > 0 && aiTitle.length() <= 80) {
+                improvedTitle = aiTitle;
+            }
+            
+        } catch (Exception e) {
+            // If AI fails, use original title (silent fallback)
+            System.err.println("AI title generation failed, using original: " + e.getMessage());
+        }
+        
         Course course = new Course(
-                dto.getTitle(),
+                improvedTitle,  // ← Use AI-improved title
                 dto.getDescription(),
                 teacherSub
         );

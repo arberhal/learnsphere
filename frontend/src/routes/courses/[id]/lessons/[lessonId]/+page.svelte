@@ -1,6 +1,7 @@
 <script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
+  import Quiz from '$lib/components/Quiz.svelte';
 
   let { data, form } = $props();
   
@@ -148,6 +149,11 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- 🎯 AI-POWERED QUIZ SECTION -->
+  <div class="mb-8">
+    <Quiz lessonId={data.lesson.id} />
   </div>
 
   <!-- Complete Button & Navigation -->
