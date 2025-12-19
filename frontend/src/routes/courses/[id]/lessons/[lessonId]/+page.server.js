@@ -125,5 +125,37 @@ export const actions = {
                 error: 'Failed to mark lesson as complete. Please try again.'
             });
         }
+    },
+
+    // 🎯 NEW: Generate Quiz Action
+    generateQuiz: async ({ params, locals }) => {
+        const jwt_token = locals.jwt_token;
+        const lessonId = params.lessonId;
+        
+        // Use API_BASE_URL or fallback to localhost
+        const baseUrl = API_BASE_URL || 'http://localhost:8080';
+
+        try {
+            const quizResponse = await axios.get(
+                `${baseUrl}/api/lessons/${lessonId}/quiz`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${jwt_token}`
+                    }
+                }
+            );
+
+            // Return quiz data directly in the action result
+            return { 
+                quiz: quizResponse.data 
+            };
+        } catch (error) {
+            console.error('Failed to generate quiz:', error);
+            console.error('Error details:', error.response?.data || error.message);
+
+            return fail(400, {
+                error: 'Failed to generate quiz. Please try again.'
+            });
+        }
     }
 };
