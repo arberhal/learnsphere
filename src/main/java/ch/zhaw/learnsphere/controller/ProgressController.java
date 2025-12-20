@@ -2,6 +2,7 @@ package ch.zhaw.learnsphere.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,6 +16,7 @@ import ch.zhaw.learnsphere.model.Progress;
 import ch.zhaw.learnsphere.model.ProgressStatus;
 import ch.zhaw.learnsphere.repository.LessonRepository;
 import ch.zhaw.learnsphere.repository.ProgressRepository;
+import ch.zhaw.learnsphere.service.UserService;
 
 @RestController
 @RequestMapping("/api/student/progress")
@@ -22,19 +24,28 @@ public class ProgressController {
 
     private final ProgressRepository progressRepository;
     private final LessonRepository lessonRepository;
+    private final UserService userService;
 
     public ProgressController(
             ProgressRepository progressRepository,
-            LessonRepository lessonRepository) {
+            LessonRepository lessonRepository,
+            UserService userService) {
         this.progressRepository = progressRepository;
         this.lessonRepository = lessonRepository;
+        this.userService = userService;
     }
 
     @PostMapping("/{courseId}/{completedLessons}")
-    public ResponseEntity<Progress> updateProgress(
+    public ResponseEntity<?> updateProgress(
             @PathVariable String courseId,
             @PathVariable Integer completedLessons,
             @AuthenticationPrincipal Jwt jwt) {
+
+        // ✅ Check if user is a student
+        if (!userService.isStudent(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only students can update progress");
+        }
 
         String studentSub = jwt.getSubject();
 
@@ -61,9 +72,15 @@ public class ProgressController {
     }
 
     @GetMapping("/{courseId}")
-    public ResponseEntity<Progress> getProgress(
+    public ResponseEntity<?> getProgress(
             @PathVariable String courseId,
             @AuthenticationPrincipal Jwt jwt) {
+
+        // ✅ Check if user is a student
+        if (!userService.isStudent(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only students can view progress");
+        }
 
         String studentSub = jwt.getSubject();
 
@@ -73,19 +90,30 @@ public class ProgressController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
     @GetMapping
-    public ResponseEntity<List<Progress>> getAllProgress(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> getAllProgress(@AuthenticationPrincipal Jwt jwt) {
+        // ✅ Check if user is a student
+        if (!userService.isStudent(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only students can view progress");
+        }
+
         String studentSub = jwt.getSubject();
         List<Progress> progressList = progressRepository.findByStudentSub(studentSub);
         return ResponseEntity.ok(progressList);
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Progress>> getProgressByStatus(
+    public ResponseEntity<?> getProgressByStatus(
             @PathVariable ProgressStatus status,
             @AuthenticationPrincipal Jwt jwt) {
         
+        // ✅ Check if user is a student
+        if (!userService.isStudent(jwt)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Only students can view progress");
+        }
+
         String studentSub = jwt.getSubject();
         List<Progress> progressList = progressRepository
                 .findByStudentSubAndStatus(studentSub, status);
