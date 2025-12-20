@@ -93,15 +93,7 @@ public class CourseController {
         return ResponseEntity.ok(myCourses);
     }
 
-    // ========================================
-    // TEACHER ENDPOINTS (Teacher role required)
-    // ========================================
-
-    /**
-     * POST /api/teacher/courses
-     * Create a new course (Teachers only)
-     * ✨ WITH AI TITLE GENERATION ✨
-     */
+  
     @PostMapping("/teacher/courses")
     public ResponseEntity<?> createCourse(
             @RequestBody CourseCreateDTO dto,

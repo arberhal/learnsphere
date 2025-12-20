@@ -2,6 +2,7 @@ package ch.zhaw.learnsphere.security;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.test.context.TestConfiguration;
@@ -16,7 +17,7 @@ public class TestSecurityConfig {
     // Mock JWT Tokens für Tests
     public static final String TEACHER = "Bearer teacher";
     public static final String STUDENT = "Bearer student";
-    public static final String ADMIN = "Bearer admin";
+    public static final String OTHER_TEACHER = "Bearer other-teacher";
     public static final String INVALID = "Bearer invalid";
     
     @Bean
@@ -25,20 +26,32 @@ public class TestSecurityConfig {
             @Override
             public Jwt decode(String token) {
                 var bearer = "Bearer " + token;
-                if (bearer.equals(TEACHER) || bearer.equals(STUDENT) || bearer.equals(ADMIN)) {
-                    return createJwtWithRole(token);
+                
+                if (bearer.equals(TEACHER)) {
+                    return createJwt("test-user-teacher", List.of("teacher"));
                 }
-                throw new AuthenticationException("Invalid JWT") {
-                };
+                if (bearer.equals(STUDENT)) {
+                    return createJwt("test-user-student", List.of("student"));
+                }
+                if (bearer.equals(OTHER_TEACHER)) {
+                    return createJwt("other-teacher-sub", List.of("teacher"));
+                }
+                
+                throw new AuthenticationException("Invalid JWT") {};
             }
         };
     }
     
-    private Jwt createJwtWithRole(String role) {
+    /**
+     * Erstellt ein JWT mit den angegebenen Claims
+     * WICHTIG: user_roles muss eine Liste sein, da UserService.userHasRole() 
+     * jwt.getClaimAsStringList("user_roles") aufruft
+     */
+    private Jwt createJwt(String subject, List<String> roles) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", "test-user");
-        claims.put("user_roles", role);
-        claims.put("email", "test@learnsphere.com");
+        claims.put("sub", subject);
+        claims.put("user_roles", roles);  // Als Liste, nicht als String!
+        claims.put("email", subject + "@learnsphere.com");
         
         return new Jwt(
             "valid-token",
