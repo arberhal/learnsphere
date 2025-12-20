@@ -36,12 +36,23 @@
         <!-- Desktop Navigation Links -->
         <div class="hidden items-center gap-2 md:flex">
           {#if isAuthenticated}
-            <!-- Common Links -->
+            <!-- Courses (Students only) -->
+            {#if isStudent}
+              <a 
+                href="/courses" 
+                class="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground {currentPath.startsWith('/courses') && !currentPath.includes('create') && currentPath !== '/courses/create' ? 'bg-accent' : ''}"
+              >
+                Courses
+              </a>
+            {/if}
+
+            <!-- My Courses (for everyone) -->
             <a 
-              href="/courses" 
-              class="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground {currentPath.startsWith('/courses') && !currentPath.includes('create') ? 'bg-accent' : ''}"
+              href="/my-courses" 
+              class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-all hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20 shadow-sm' : ''}"
             >
-              Courses
+              <span>📖</span>
+              My Courses
             </a>
 
             <!-- Teacher-Only Links -->
@@ -52,17 +63,6 @@
               >
                 <span>➕</span>
                 Create Course
-              </a>
-            {/if}
-
-            <!-- Student-Only Links -->
-            {#if isStudent}
-              <a 
-                href="/my-courses" 
-                class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-all hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20 shadow-sm' : ''}"
-              >
-                <span>📖</span>
-                My Courses
               </a>
             {/if}
 
@@ -115,11 +115,22 @@
         <div class="border-t border-border py-4 md:hidden">
           {#if isAuthenticated}
             <div class="space-y-1">
+              <!-- Courses (Students only) -->
+              {#if isStudent}
+                <a 
+                  href="/courses" 
+                  class="block rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent {currentPath.startsWith('/courses') && !currentPath.includes('create') ? 'bg-accent' : ''}"
+                >
+                  Courses
+                </a>
+              {/if}
+
               <a 
-                href="/courses" 
-                class="block rounded-lg px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent {currentPath.startsWith('/courses') && !currentPath.includes('create') ? 'bg-accent' : ''}"
+                href="/my-courses" 
+                class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20' : ''}"
               >
-                Courses
+                <span>📖</span>
+                My Courses
               </a>
 
               {#if isTeacher}
@@ -129,16 +140,6 @@
                 >
                   <span>➕</span>
                   Create Course
-                </a>
-              {/if}
-
-              {#if isStudent}
-                <a 
-                  href="/my-courses" 
-                  class="flex items-center gap-2 rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-500/20 {currentPath === '/my-courses' ? 'bg-blue-500/20' : ''}"
-                >
-                  <span>📖</span>
-                  My Courses
                 </a>
               {/if}
 

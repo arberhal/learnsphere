@@ -1,5 +1,7 @@
 package ch.zhaw.learnsphere.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.zhaw.learnsphere.model.Progress;
+import ch.zhaw.learnsphere.model.ProgressStatus;
 import ch.zhaw.learnsphere.repository.LessonRepository;
 import ch.zhaw.learnsphere.repository.ProgressRepository;
 
@@ -31,9 +34,8 @@ public class ProgressController {
     public ResponseEntity<Progress> updateProgress(
             @PathVariable String courseId,
             @PathVariable Integer completedLessons,
-            @AuthenticationPrincipal Jwt jwt) {  // ✅ Get JWT
+            @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Extract real student's sub from JWT
         String studentSub = jwt.getSubject();
 
         int totalLessons = lessonRepository
@@ -49,8 +51,11 @@ public class ProgressController {
         Progress progress = progressRepository
                 .findByCourseIdAndStudentSub(courseId, studentSub)
                 .orElse(new Progress(null, courseId, studentSub, 0, 0.0));
+
         progress.setCompletedLessons(safeCompletedLessons);
         progress.setPercent(Math.min(percent, 100.0));
+
+        progress.updateStatus(totalLessons);
 
         return ResponseEntity.ok(progressRepository.save(progress));
     }
@@ -58,14 +63,32 @@ public class ProgressController {
     @GetMapping("/{courseId}")
     public ResponseEntity<Progress> getProgress(
             @PathVariable String courseId,
-            @AuthenticationPrincipal Jwt jwt) {  // ✅ Get JWT
+            @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Extract real student's sub from JWT
         String studentSub = jwt.getSubject();
 
         return progressRepository
                 .findByCourseIdAndStudentSub(courseId, studentSub)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+
+    @GetMapping
+    public ResponseEntity<List<Progress>> getAllProgress(@AuthenticationPrincipal Jwt jwt) {
+        String studentSub = jwt.getSubject();
+        List<Progress> progressList = progressRepository.findByStudentSub(studentSub);
+        return ResponseEntity.ok(progressList);
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Progress>> getProgressByStatus(
+            @PathVariable ProgressStatus status,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String studentSub = jwt.getSubject();
+        List<Progress> progressList = progressRepository
+                .findByStudentSubAndStatus(studentSub, status);
+        return ResponseEntity.ok(progressList);
     }
 }

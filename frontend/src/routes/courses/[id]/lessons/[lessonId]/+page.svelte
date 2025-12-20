@@ -7,6 +7,10 @@
   
   let isCompleting = $state(false);
 
+  // ✨ Check if user is teacher
+  let isTeacher = $derived(data.isTeacher || false);
+  let isOwnCourse = $derived(data.isOwnCourse || false);
+
   // Check if this lesson is completed
   let isLessonCompleted = $derived(
     data.progress && data.currentLessonOrder <= data.progress.completedLessons
@@ -45,7 +49,7 @@
   <!-- Header with breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="flex items-center gap-2 text-sm">
-      <li><a href="/courses" class="text-blue-600 hover:underline">Courses</a></li>
+      <li><a href={isTeacher ? "/my-courses" : "/courses"} class="text-blue-600 hover:underline">{isTeacher ? "My Courses" : "Courses"}</a></li>
       <li class="text-gray-400">/</li>
       <li><a href="/courses/{data.course.id}" class="text-blue-600 hover:underline">{data.course.title}</a></li>
       <li class="text-gray-400">/</li>
@@ -74,9 +78,14 @@
           <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-600 text-white">
             Lesson {data.lesson.order}
           </span>
-          {#if isLessonCompleted}
+          {#if isLessonCompleted && !isTeacher}
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600 text-white">
               ✓ Completed
+            </span>
+          {/if}
+          {#if isOwnCourse}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-600 text-white">
+              👨‍🏫 Your Course
             </span>
           {/if}
         </div>
@@ -84,13 +93,15 @@
       </div>
       
       <div class="flex gap-2">
-        <!-- Teacher edit button (will hide with roles later) -->
-        <a 
-          href="/courses/{data.course.id}/edit" 
-          class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Edit Course
-        </a>
+        {#if isOwnCourse}
+          <!-- Teacher can edit their own course -->
+          <a 
+            href="/courses/{data.course.id}/edit" 
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors"
+          >
+            ✏️ Edit Course
+          </a>
+        {/if}
         <a 
           href="/courses/{data.course.id}" 
           class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -100,8 +111,8 @@
       </div>
     </div>
 
-    <!-- Progress Bar -->
-    {#if data.progress}
+    <!-- Progress Bar (only for students) -->
+    {#if data.progress && !isTeacher}
       <div class="p-4 bg-gray-50 rounded-lg">
         <div class="flex justify-between items-center mb-2">
           <span class="text-sm text-gray-600">Course Progress</span>
@@ -156,49 +167,58 @@
     <Quiz lessonId={data.lesson.id} />
   </div>
 
-  <!-- Complete Button & Navigation -->
-  <div class="mt-8 pt-6 border-t-2 border-gray-200">
-    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-      <!-- Previous Lesson -->
-      {#if prevLesson}
-        <a 
-          href="/courses/{data.course.id}/lessons/{prevLesson.id}" 
-          class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          ← Previous Lesson
-        </a>
-      {:else}
-        <div class="hidden md:block"></div>
-      {/if}
-
-      <!-- Complete Button -->
-      <div class="flex gap-2">
-        {#if !isLessonCompleted}
-          <form method="POST" action="?/complete" use:enhance={handleCompleteEnhance}>
-            <button 
-              type="submit" 
-              class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isCompleting}
-            >
-              {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
-            </button>
-          </form>
-        {:else}
-          <button class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg opacity-50 cursor-not-allowed" disabled>
-            ✓ Completed
-          </button>
-        {/if}
-
-        <!-- Next Lesson -->
-        {#if nextLesson}
+  <!-- Complete Button & Navigation (ONLY FOR STUDENTS) -->
+  {#if !isTeacher}
+    <div class="mt-8 pt-6 border-t-2 border-gray-200">
+      <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+        <!-- Previous Lesson -->
+        {#if prevLesson}
           <a 
-            href="/courses/{data.course.id}/lessons/{nextLesson.id}" 
-            class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            href="/courses/{data.course.id}/lessons/{prevLesson.id}" 
+            class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Next Lesson →
+            ← Previous Lesson
           </a>
+        {:else}
+          <div class="hidden md:block"></div>
         {/if}
+
+        <!-- Complete Button -->
+        <div class="flex gap-2">
+          {#if !isLessonCompleted}
+            <form method="POST" action="?/complete" use:enhance={handleCompleteEnhance}>
+              <button 
+                type="submit" 
+                class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isCompleting}
+              >
+                {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
+              </button>
+            </form>
+          {:else}
+            <button class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg opacity-50 cursor-not-allowed" disabled>
+              ✓ Completed
+            </button>
+          {/if}
+
+          <!-- Next Lesson -->
+          {#if nextLesson}
+            <a 
+              href="/courses/{data.course.id}/lessons/{nextLesson.id}" 
+              class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Next Lesson →
+            </a>
+          {/if}
+        </div>
       </div>
     </div>
-  </div>
+  {:else if isOwnCourse}
+    <!-- Teacher Preview Mode -->
+    <div class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+      <p class="text-amber-800 font-medium">
+        👨‍🏫 Teacher Preview Mode - You're viewing your own course content
+      </p>
+    </div>
+  {/if}
 </div>

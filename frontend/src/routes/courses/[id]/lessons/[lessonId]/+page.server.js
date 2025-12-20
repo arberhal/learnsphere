@@ -11,6 +11,9 @@ export async function load({ params, locals }) {
         throw redirect(303, '/login');
     }
 
+    // ✨ Check if user is teacher
+    const isTeacher = locals.role === 'teacher' || locals.isTeacher;
+
     try {
         const lessonResponse = await axios.get(
             `${API_BASE_URL}/api/teacher/courses/${courseId}/lessons/${lessonId}`,
@@ -39,19 +42,26 @@ export async function load({ params, locals }) {
             }
         );
 
+        // ✨ Check if teacher owns this course
+        const userSub = locals.jwt?.sub || locals.user?.sub;
+        const isOwnCourse = isTeacher && courseResponse.data.teacherSub === userSub;
+
+        // ✨ Only fetch progress for students
         let progress = null;
-        try {
-            const progressResponse = await axios.get(
-                `${API_BASE_URL}/api/student/progress/${courseId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${jwt_token}`
+        if (!isTeacher) {
+            try {
+                const progressResponse = await axios.get(
+                    `${API_BASE_URL}/api/student/progress/${courseId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${jwt_token}`
+                        }
                     }
-                }
-            );
-            progress = progressResponse.data;
-        } catch {
-            // no progress yet
+                );
+                progress = progressResponse.data;
+            } catch {
+                // no progress yet
+            }
         }
 
         return {
@@ -59,7 +69,9 @@ export async function load({ params, locals }) {
             course: courseResponse.data,
             allLessons: lessonsResponse.data,
             progress,
-            currentLessonOrder: lessonResponse.data.order
+            currentLessonOrder: lessonResponse.data.order,
+            isTeacher,      // ✨ Pass to frontend
+            isOwnCourse     // ✨ Pass to frontend
         };
     } catch (error) {
         console.error('Failed to load lesson:', error);
@@ -68,7 +80,7 @@ export async function load({ params, locals }) {
             throw redirect(303, `/courses/${courseId}`);
         }
 
-        throw redirect(303, '/courses');
+        throw redirect(303, isTeacher ? '/my-courses' : '/courses');
     }
 }
 
@@ -76,6 +88,14 @@ export const actions = {
     complete: async ({ params, locals }) => {
         const jwt_token = locals.jwt_token;
         const courseId = params.id;
+
+        // ✨ SECURITY: Block teachers from completing lessons
+        const isTeacher = locals.role === 'teacher' || locals.isTeacher;
+        if (isTeacher) {
+            return fail(403, {
+                error: 'Teachers cannot mark lessons as complete.'
+            });
+        }
 
         try {
             const lessonsResponse = await axios.get(
@@ -127,12 +147,11 @@ export const actions = {
         }
     },
 
-    // 🎯 NEW: Generate Quiz Action
+    // 🎯 Generate Quiz Action
     generateQuiz: async ({ params, locals }) => {
         const jwt_token = locals.jwt_token;
         const lessonId = params.lessonId;
         
-        // Use API_BASE_URL or fallback to localhost
         const baseUrl = API_BASE_URL || 'http://localhost:8080';
 
         try {
@@ -145,7 +164,6 @@ export const actions = {
                 }
             );
 
-            // Return quiz data directly in the action result
             return { 
                 quiz: quizResponse.data 
             };
