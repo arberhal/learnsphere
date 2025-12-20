@@ -8,8 +8,14 @@ export async function load({ locals }) {
         throw redirect(303, '/login');
     }
 
+    // ✨ Redirect teachers to My Courses
+    const isTeacher = locals.role === 'teacher' || locals.isTeacher;
+    if (isTeacher) {
+        throw redirect(303, '/my-courses');
+    }
+
     try {
-        // Fetch all available courses
+        // Fetch all available courses (for students only)
         const response = await axios.get(
             'http://localhost:8080/api/courses',
             {

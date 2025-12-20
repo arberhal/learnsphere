@@ -14,13 +14,28 @@ export async function handle({ event, resolve }) {
     if (userInfoCookie) {
         try {
             event.locals.user = JSON.parse(decodeURIComponent(userInfoCookie));
+            
+            // ✨ NEW: Detect role from user_roles
+            if (event.locals.user.user_roles && Array.isArray(event.locals.user.user_roles)) {
+                // Check if user has 'teacher' role
+                event.locals.isTeacher = event.locals.user.user_roles.includes('teacher');
+                event.locals.role = event.locals.user.user_roles[0]; // First role as primary
+            } else {
+                // Default to student if no roles found
+                event.locals.isTeacher = false;
+                event.locals.role = 'student';
+            }
         } catch (error) {
             console.error('Failed to parse user info cookie:', error);
             event.locals.user = {};
+            event.locals.isTeacher = false;
+            event.locals.role = 'student';
         }
     } else {
         // No user info cookie means user is not logged in
         event.locals.user = {};
+        event.locals.isTeacher = false;
+        event.locals.role = null;
     }
     
     // isAuthenticated: we assume that users are authenticated if the property "user.name" exists
