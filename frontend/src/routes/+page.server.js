@@ -1,8 +1,9 @@
-import { API_BASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import axios from 'axios';
 
 export async function load({ locals }) {
 	const jwt_token = locals.jwt_token;
+	const API_BASE_URL = env.API_BASE_URL ?? 'http://localhost:8080';
 
 	if (!locals.isAuthenticated || !jwt_token) {
 		return { courses: [] };

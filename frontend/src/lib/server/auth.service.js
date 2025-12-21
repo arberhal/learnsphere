@@ -1,5 +1,8 @@
 import axios from "axios";
-import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from "$env/static/private";
+import { env } from "$env/dynamic/private";
+
+const AUTH0_DOMAIN = env.AUTH0_DOMAIN;
+const AUTH0_CLIENT_ID = env.AUTH0_CLIENT_ID;
 
 async function signup(
   email,
