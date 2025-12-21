@@ -1,4 +1,4 @@
-FROM openjdk:25-jdk-slim
+FROM eclipse-temurin:25-jdk-jammy
 RUN apt-get update && apt-get install -y supervisor curl \
  && curl -sL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y nodejs \
