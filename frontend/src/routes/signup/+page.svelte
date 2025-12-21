@@ -10,7 +10,7 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
 	<div class="w-full max-w-md">
 		<div class="bg-white rounded-2xl shadow-xl p-8">
-			<!-- Header -->
+
 			<div class="text-center mb-8">
 				<div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
 					<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +21,6 @@
 				<p class="text-gray-600 mt-2">Join LearnSphere today</p>
 			</div>
 
-			<!-- Error Message -->
 			{#if form?.error}
 				<div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
 					<svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -31,7 +30,7 @@
 				</div>
 			{/if}
 
-			<!-- Form -->
+
 			<form
 				method="POST"
 				action="?/signup"
@@ -40,7 +39,7 @@
 				novalidate
 				class="space-y-5"
 			>
-				<!-- Email -->
+
 				<div>
 					<label for="email" class="block text-sm font-medium text-gray-700 mb-2">
 						E-Mail
@@ -55,7 +54,7 @@
 					/>
 				</div>
 
-				<!-- First Name & Last Name -->
+
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
@@ -84,7 +83,7 @@
 					</div>
 				</div>
 
-				<!-- Password -->
+
 				<div>
 					<label for="password" class="block text-sm font-medium text-gray-700 mb-2">
 						Password
@@ -99,7 +98,7 @@
 					/>
 				</div>
 
-				<!-- Submit Button -->
+
 				<button
 					type="submit"
 					class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-lg hover:shadow-xl"
@@ -107,7 +106,7 @@
 					Sign up
 				</button>
 
-				<!-- Login Link -->
+
 				<div class="text-center pt-4">
 					<p class="text-gray-600 text-sm">
 						Already have an account?

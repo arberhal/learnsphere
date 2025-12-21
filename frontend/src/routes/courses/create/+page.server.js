@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { fail, redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 export const actions = {
 	default: async ({ request, locals }) => {
 		// ✅ Add locals
 		const jwt_token = locals.jwt_token; // ✅ Get JWT
+		const API_BASE_URL = env.API_BASE_URL ?? 'http://localhost:8080';
 
 		const data = await request.formData();
 		const title = data.get('title');
@@ -60,7 +62,7 @@ export const actions = {
 		try {
 			// Step 1: Create the course
 			const courseResponse = await axios.post(
-				`http://localhost:8080/api/teacher/courses`,
+				`${API_BASE_URL}/api/teacher/courses`,
 				{
 					title: title.trim(),
 					description: description.trim()
@@ -83,7 +85,7 @@ export const actions = {
 			if (lessons.length > 0) {
 				const lessonPromises = lessons.map((lesson) =>
 					axios.post(
-						`http://localhost:8080/api/teacher/courses/${courseId}/lessons`,
+						`${API_BASE_URL}/api/teacher/courses/${courseId}/lessons`,
 						{
 							title: lesson.title,
 							content: lesson.content,
