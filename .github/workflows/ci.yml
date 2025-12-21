@@ -19,7 +19,7 @@ jobs:
     env:
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
       AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-      OPEN_AI_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-tests' }}
+      OPEN_AI_KEY: ${{ secrets.OPENAI_API_KEY }}
       
     steps:
       - name: Checkout code
