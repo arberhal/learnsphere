@@ -98,7 +98,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {#each filteredCourses as course}
           <a 
-            href="/courses/{course.id}" 
+            href={`/courses/${course.id}`} 
             class="group bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-blue-300 flex flex-col"
           >
             <!-- Eye-catching header with subtle gradient and better contrast -->

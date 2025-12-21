@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 export async function load({ locals }) {
     const jwt_token = locals.jwt_token;
@@ -14,10 +15,12 @@ export async function load({ locals }) {
         throw redirect(303, '/my-courses');
     }
 
+    const API_BASE_URL = env.API_BASE_URL ?? 'http://localhost:8080';
+
     try {
         // Fetch all available courses (for students only)
         const response = await axios.get(
-            'http://localhost:8080/api/courses',
+            `${API_BASE_URL}/api/courses`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt_token}`
