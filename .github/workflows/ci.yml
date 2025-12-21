@@ -28,9 +28,10 @@ jobs:
           --health-retries 5
     
     env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI != '' && secrets.MONGODB_URI || 'mongodb://localhost:27017/learnsphere-test' }}
-      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN != '' && secrets.AUTH0_DOMAIN || 'test.auth0.com' }}
-      OPEN_AI_KEY: ${{ secrets.OPENAI_API_KEY != '' && secrets.OPENAI_API_KEY || 'dummy-openai-key' }}
+      # Use local Mongo service for tests; no external secrets required
+      MONGODB_URI: mongodb://localhost:27017/learnsphere-test
+      AUTH0_DOMAIN: test.auth0.com
+      OPEN_AI_KEY: dummy-openai-key
       
     steps:
       - name: Checkout code
