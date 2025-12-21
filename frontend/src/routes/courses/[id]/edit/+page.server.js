@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { fail, redirect } from '@sveltejs/kit';
-import { API_BASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+const API_BASE_URL = env.API_BASE_URL ?? 'http://localhost:8080';
 
 export async function load({ params, locals }) {
     const jwt_token = locals.jwt_token;
