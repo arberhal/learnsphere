@@ -9,4 +9,3 @@ import ch.zhaw.learnsphere.model.Lesson;
 public interface LessonRepository extends MongoRepository<Lesson, String> {
     List<Lesson> findByCourseIdOrderByOrderAsc(String courseId);
 }
-

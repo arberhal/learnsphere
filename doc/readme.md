@@ -825,15 +825,46 @@ Diese könnten in einem erweiterten Diagramm ergänzt werden.
 # Implementation
 
 ## Frontend
+![homepage](images/homepage/homepage.png)
 
+![homepage-header-student](images/homepage/studentheader.png)
+
+![homepage-header-teacher](images/homepage/teacherheader.png)
+
+Die Homepage von LearnSphere ist die zentrale Einstiegsseite der Plattform und bietet eine übersichtliche, moderne Benutzeroberfläche. Abhängig vom Anmeldestatus und der Benutzerrolle passt sich die Navigation dynamisch an: Nicht angemeldete Nutzer sehen einen Willkommensbereich mit Einstiegsmöglichkeiten, während angemeldete Studierende und Lehrpersonen eine personalisierte Navigationsleiste mit kursbezogenen Funktionen, Rollenkennzeichnung und Logout-Option erhalten. Alle bewertungsrelevanten GUI-Elemente sind sichtbar und klar strukturiert dargestellt.
+
+![login-page](images/homepage/login.png)
+
+Die Login-Seite von LearnSphere ermöglicht registrierten Nutzern eine einfache und sichere Anmeldung. Sie besteht aus einem zentral platzierten Formular mit Eingabefeldern für E-Mail-Adresse und Passwort, sowie einem klar hervorgehobenen Login-Button. Zusätzlich wird ein direkter Link zur Registrierung für neue Nutzer angeboten.
+
+![courses page für studenten](images/homepage/courses-student.png)
+Die Courses-Seite für Studierende zeigt eine übersichtliche Kursübersicht in Kartenform. Über eine Suchleiste können Kurse nach Titel oder Beschreibung gefiltert werden. Jede Kurskarte enthält Titel, Kurzbeschreibung und einen „Explore Course“-Button, über den Studierende detaillierte Kursinformationen aufrufen und Kurse entdecken können.
+
+![course id page für studenten](images/homepage/courses-id-student.png)
+Die Kursdetailseite für Studierende zeigt den gewählten Kurs mit Titel, Beschreibung und aktuellem Lernfortschritt. Ein Fortschrittsbalken visualisiert den Abschluss der Lektionen, während die Kursinhalte übersichtlich in einzelne Lektionen gegliedert sind. Abgeschlossene Lektionen sind gekennzeichnet, und über den Button „Continue Learning“ können Studierende ihr Lernen fortsetzen.
+
+![course id page für studenten](images/homepage/lessons-id-student.png)
+![course id page quiz für studenten](images/homepage/quiz.png)
+Die Lektionsseite für Studierende zeigt den Inhalt der ausgewählten Lektion sowie den aktuellen Kursfortschritt in Prozent. Zusätzlich steht eine Funktion zur Wissensüberprüfung zur Verfügung, mit der ein Quiz zur Lektion generiert werden kann. Navigationsbuttons ermöglichen den Wechsel zwischen Lektionen sowie das Abschließen der Lektion.
+
+![my coursespage](images/homepage/my-courses-student.png)
+Die Seite „My Courses“ zeigt Studierenden alle Kurse, in denen bereits Lernfortschritte erzielt wurden. Für jeden Kurs werden Titel, Kurzbeschreibung, aktueller Fortschritt in Prozent sowie der Bearbeitungsstatus angezeigt. Über den Button „Continue Learning“ kann der Kurs direkt fortgesetzt werden.
+
+![my coursespage teacher](images/homepage/my-courses-teacher.png)
+Die Seite „My Courses“ für Lehrpersonen zeigt alle selbst erstellten Kurse in einer übersichtlichen Listenansicht. Zu jedem Kurs werden Titel, Kurzbeschreibung sowie die Anzahl der enthaltenen Lektionen angezeigt. Lehrpersonen können ihre Kurse über den Button „Edit Course“ bearbeiten und haben über die Navigation zusätzlich Zugriff auf die Funktion „Create Course“.
+![edit teacher](images/homepage/courses-edit-teacher.png)
+Die Kursbearbeitungsseite für Lehrpersonen ermöglicht das Verwalten von Kursinhalten. Lehrpersonen können Kurstitel und Beschreibung anpassen, Kurse löschen sowie Lektionen hinzufügen, bearbeiten oder speichern. Die Seite bietet dafür ein strukturiertes Formular mit klar getrennten Bereichen für Kursinformationen und Lektionen.
+![courses create teacher](images/homepage/courses-create-teacher.png)
+Die Seite „Create New Course“ ermöglicht Lehrpersonen das Erstellen neuer Kurse. Über ein Formular können Kurstitel und Beschreibung erfasst sowie optional Lektionen mit Inhalt und Video-URL hinzugefügt werden. Die Lektionen lassen sich dynamisch hinzufügen, anordnen oder entfernen, bevor der Kurs gespeichert wird.
 
 ## KI-Funktionen
-> Aufgaben und Funktionen des eingebundenen KI-Modells.
-
+Das eingebundene KI-Modell übernimmt zwei zentrale Aufgaben im System. Zum einen kann auf Basis der Lektionsbeschreibung automatisch ein Quiz generiert werden, mit dem Studierende ihr Verständnis der Inhalte überprüfen können. Zum anderen unterstützt die KI Lehrpersonen bei der Kurserstellung, indem aus der Kursbeschreibung automatisch ein passender Kurstitel vorgeschlagen bzw. generiert wird.
 ## Optionale Anforderungen
-> Liste der umgesetzten optionalen Anforderungen mit Beschreibung.
+Tailwind CSS: Einsatz der Tailwind-CSS-Library zur Umsetzung eines konsistenten, responsiven und modernen Frontend-Designs.
 
 # Fazit
-
 ## Stand der Implementation
-> Stand der Implementation, nÃ¤chste Schritte (mit Referenz auf den Backlog).
+Die LearnSphere-Applikation wurde erfolgreich umgesetzt und deckt alle geplanten Kernfunktionen ab. Sowohl Studierende als auch Lehrpersonen verfügen über klar getrennte und funktionsfähige Benutzeroberflächen. Studierende können Kurse entdecken, ihren Lernfortschritt verfolgen, Lektionen bearbeiten und ihr Wissen mithilfe KI-gestützter Quizfunktionen überprüfen. Lehrpersonen sind in der Lage, Kurse und Lektionen zu erstellen, zu bearbeiten und zu verwalten.
+
+Die Integration der KI-Funktionen erweitert die Plattform sinnvoll, indem sie Lehrpersonen bei der Kurserstellung unterstützt und Studierenden eine automatisierte Lernkontrolle bietet. Das Frontend ist vollständig implementiert, übersichtlich strukturiert und mithilfe von Tailwind CSS modern und responsiv gestaltet. Insgesamt befindet sich die Applikation in einem stabilen und funktionsfähigen Zustand und erfüllt die definierten Anforderungen.
+
