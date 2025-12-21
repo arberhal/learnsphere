@@ -16,10 +16,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-      OPEN_AI_KEY: ${{ secrets.OPENAI_API_KEY }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI != '' && secrets.MONGODB_URI || 'mongodb://localhost:27017/learnsphere-test' }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN != '' && secrets.AUTH0_DOMAIN || 'test.auth0.com' }}
+      OPEN_AI_KEY: ${{ secrets.OPENAI_API_KEY != '' && secrets.OPENAI_API_KEY || 'dummy-openai-key' }}
       
     steps:
       - name: Checkout code
