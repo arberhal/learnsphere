@@ -34,7 +34,7 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 [program:frontend]
 directory=/usr/src/app/frontend
-command=sh -c "npm run preview -- --host 0.0.0.0 --port 3000"
+command=sh -c "HOST=0.0.0.0 PORT=3000 node build"
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
