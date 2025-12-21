@@ -1,4 +1,6 @@
 FROM eclipse-temurin:25-jdk-jammy
+ARG API_BASE_URL=http://localhost:8080
+ENV API_BASE_URL=${API_BASE_URL}
 RUN apt-get update && apt-get install -y supervisor curl \
  && curl -sL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y nodejs \
