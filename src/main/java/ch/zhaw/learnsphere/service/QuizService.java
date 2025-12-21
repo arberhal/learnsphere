@@ -20,9 +20,6 @@ public class QuizService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Generate 5 multiple choice questions from lesson content
-     */
     public List<QuizQuestion> generateQuiz(String lessonContent) {
         try {
             String promptText = """
@@ -45,18 +42,15 @@ public class QuizService {
                 - Options should be plausible but only one correct
                 """.formatted(lessonContent);
 
-            // Use ChatClient to call AI
             String jsonResponse = chatClient.prompt()
                     .user(promptText)
                     .call()
                     .content();
             
-            // Remove markdown code blocks if present
             jsonResponse = jsonResponse.replaceAll("```json\\n?", "")
                                        .replaceAll("```\\n?", "")
                                        .trim();
             
-            // Parse JSON response
             JsonNode root = objectMapper.readTree(jsonResponse);
             List<QuizQuestion> questions = new ArrayList<>();
             

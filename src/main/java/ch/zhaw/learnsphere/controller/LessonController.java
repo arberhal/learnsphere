@@ -44,13 +44,11 @@ public class LessonController {
             @RequestBody LessonCreateDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Only teachers can create lessons");
         }
 
-        // Verify course belongs to this teacher
         String teacherSub = jwt.getSubject();
         if (!courseRepository.findById(courseId)
                 .filter(course -> course.getTeacherSub().equals(teacherSub))
@@ -73,7 +71,6 @@ public class LessonController {
 
     @GetMapping
     public ResponseEntity<List<Lesson>> getLessons(@PathVariable String courseId) {
-        // Optionaler Course-Existenzcheck (empfohlen)
         if (!courseRepository.existsById(courseId)) {
             return ResponseEntity.notFound().build();
         }
@@ -82,7 +79,6 @@ public class LessonController {
                 lessonRepository.findByCourseIdOrderByOrderAsc(courseId));
     }
 
-    // ✅ GET single lesson by ID
     @GetMapping("/{lessonId}")
     public ResponseEntity<Lesson> getLessonById(
             @PathVariable String courseId,
@@ -101,13 +97,11 @@ public class LessonController {
             @RequestBody LessonCreateDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Only teachers can update lessons");
         }
 
-        // Verify course belongs to this teacher
         String teacherSub = jwt.getSubject();
         if (!courseRepository.findById(courseId)
                 .filter(course -> course.getTeacherSub().equals(teacherSub))
@@ -134,13 +128,11 @@ public class LessonController {
             @PathVariable String lessonId,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Only teachers can delete lessons");
         }
 
-        // Verify course belongs to this teacher
         String teacherSub = jwt.getSubject();
         if (!courseRepository.findById(courseId)
                 .filter(course -> course.getTeacherSub().equals(teacherSub))

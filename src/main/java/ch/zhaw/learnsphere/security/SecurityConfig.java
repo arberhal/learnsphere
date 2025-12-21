@@ -11,12 +11,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html
-    // https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // ✅ ADD THIS LINE
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/*").permitAll()
                 .requestMatchers("/api/**").authenticated()

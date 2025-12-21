@@ -14,5 +14,5 @@ import lombok.Setter;
 public class QuizQuestion {
     private String question;
     private List<String> options;
-    private int correctAnswer; // Index of correct option (0-3)
+    private int correctAnswer;
 }

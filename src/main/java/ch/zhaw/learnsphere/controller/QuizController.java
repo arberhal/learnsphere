@@ -17,7 +17,7 @@ import ch.zhaw.learnsphere.service.QuizService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")  // ← ADD THIS LINE
+@CrossOrigin(origins = "http://localhost:5173")
 public class QuizController {
 
     @Autowired
@@ -26,27 +26,20 @@ public class QuizController {
     @Autowired
     private LessonRepository lessonRepository;
 
-    /**
-     * Generate quiz for a specific lesson
-     * GET /api/lessons/{lessonId}/quiz
-     */
     @GetMapping("/lessons/{lessonId}/quiz")
     public ResponseEntity<?> generateQuiz(@PathVariable String lessonId) {
         
-        // Find lesson
         Lesson lesson = lessonRepository.findById(lessonId).orElse(null);
         
         if (lesson == null) {
             return ResponseEntity.notFound().build();
         }
         
-        // Check if lesson has content
         if (lesson.getContent() == null || lesson.getContent().trim().isEmpty()) {
             return ResponseEntity.badRequest()
                     .body("Lesson has no content to generate quiz from");
         }
         
-        // Generate quiz
         List<QuizQuestion> quiz = quizService.generateQuiz(lesson.getContent());
         
         if (quiz.isEmpty()) {

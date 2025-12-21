@@ -41,7 +41,6 @@ public class ProgressController {
             @PathVariable Integer completedLessons,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a student
         if (!userService.isStudent(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only students can update progress");
@@ -76,7 +75,6 @@ public class ProgressController {
             @PathVariable String courseId,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a student
         if (!userService.isStudent(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only students can view progress");
@@ -92,7 +90,6 @@ public class ProgressController {
 
     @GetMapping
     public ResponseEntity<?> getAllProgress(@AuthenticationPrincipal Jwt jwt) {
-        // ✅ Check if user is a student
         if (!userService.isStudent(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only students can view progress");
@@ -108,7 +105,6 @@ public class ProgressController {
             @PathVariable ProgressStatus status,
             @AuthenticationPrincipal Jwt jwt) {
         
-        // ✅ Check if user is a student
         if (!userService.isStudent(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only students can view progress");

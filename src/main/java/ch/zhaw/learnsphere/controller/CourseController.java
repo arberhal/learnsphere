@@ -45,23 +45,13 @@ public class CourseController {
         this.userService = userService;
     }
 
-    // ========================================
-    // PUBLIC ENDPOINTS (All authenticated users)
-    // ========================================
-
-    /**
-     * GET /api/courses
-     * Returns ALL available courses (for browsing)
-     */
+    
     @GetMapping("/courses")
     public ResponseEntity<List<Course>> getAllCourses() {
         return ResponseEntity.ok(courseRepository.findAll());
     }
 
-    /**
-     * GET /api/courses/{id}
-     * Returns a single course by ID
-     */
+    
     @GetMapping("/courses/{id}")
     public ResponseEntity<Course> getCourseById(@PathVariable String id) {
         return courseRepository.findById(id)
@@ -69,24 +59,19 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * GET /api/my-courses
-     * Returns only courses where the current user has made progress
-     */
+    
     @GetMapping("/my-courses")
     public ResponseEntity<List<Course>> getMyCourses(
             @AuthenticationPrincipal Jwt jwt) {
         
         String studentSub = jwt.getSubject();
         
-        // Get all progress records for this user
         List<String> courseIdsWithProgress = progressRepository
                 .findByStudentSub(studentSub)
                 .stream()
                 .map(progress -> progress.getCourseId())
                 .collect(Collectors.toList());
         
-        // Get courses for those IDs
         List<Course> myCourses = courseRepository
                 .findAllById(courseIdsWithProgress);
         
@@ -99,7 +84,6 @@ public class CourseController {
             @RequestBody CourseCreateDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only teachers can create courses");
@@ -107,7 +91,6 @@ public class CourseController {
 
         String teacherSub = jwt.getSubject();
         
-        // ✨ AI TITLE GENERATION ✨
         String improvedTitle = dto.getTitle();
         try {
             String promptText = String.format(
@@ -119,28 +102,24 @@ public class CourseController {
                 dto.getDescription()
             );
             
-            // Use ChatClient
             String aiTitle = chatClient.prompt()
                     .user(promptText)
                     .call()
                     .content()
                     .trim();
             
-            // Remove quotes if AI added them
             aiTitle = aiTitle.replaceAll("^\"|\"$", "").trim();
             
-            // Only use AI title if it's reasonable length
             if (aiTitle.length() > 0 && aiTitle.length() <= 80) {
                 improvedTitle = aiTitle;
             }
             
         } catch (Exception e) {
-            // If AI fails, use original title (silent fallback)
             System.err.println("AI title generation failed, using original: " + e.getMessage());
         }
         
         Course course = new Course(
-                improvedTitle,  // ← Use AI-improved title
+                improvedTitle,
                 dto.getDescription(),
                 teacherSub
         );
@@ -148,10 +127,7 @@ public class CourseController {
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    /**
-     * GET /api/teacher/courses
-     * Get courses created by the authenticated teacher
-     */
+    
     @GetMapping("/teacher/courses")
     public ResponseEntity<List<Course>> getTeacherCourses(
             @AuthenticationPrincipal Jwt jwt) {
@@ -163,10 +139,7 @@ public class CourseController {
         );
     }
 
-    /**
-     * GET /api/teacher/courses/{courseId}
-     * Get a specific course (only if it belongs to the teacher)
-     */
+    
     @GetMapping("/teacher/courses/{courseId}")
     public ResponseEntity<Course> getTeacherCourseById(
             @PathVariable String courseId,
@@ -180,17 +153,13 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * PUT /api/teacher/courses/{courseId}
-     * Update a course (Teachers only, own courses only)
-     */
+    
     @PutMapping("/teacher/courses/{courseId}")
     public ResponseEntity<?> updateCourse(
             @PathVariable String courseId,
             @RequestBody CourseUpdateDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only teachers can update courses");
@@ -208,16 +177,12 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * DELETE /api/teacher/courses/{courseId}
-     * Delete a course (Teachers only, own courses only)
-     */
+    
     @DeleteMapping("/teacher/courses/{courseId}")
     public ResponseEntity<?> deleteCourse(
             @PathVariable String courseId,
             @AuthenticationPrincipal Jwt jwt) {
 
-        // ✅ Check if user is a teacher
         if (!userService.isTeacher(jwt)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Only teachers can delete courses");
